@@ -8,6 +8,15 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
     { id: 'checkbill', label: 'Check Bill', icon: '🧾' }
   ];
 
+  const handleLogout = () => {
+    const confirmLogout = window.confirm(
+      'Are you sure you want to logout?'
+    );
+    if (confirmLogout) {
+      onLogout();
+    }
+  };
+
   return (
     <nav className="bg-green-600 text-white shadow-lg">
       <div className="container mx-auto px-4">
@@ -32,7 +41,7 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
           </div>
 
           <button
-            onClick={onLogout}
+            onClick={handleLogout}
             className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
           >
             Logout

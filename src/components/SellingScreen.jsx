@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getBillHTML } from '../components/BillView';
 import api from '../services/api';
 
 const SellingScreen = ({ onEndDay }) => {
@@ -9,10 +10,28 @@ const SellingScreen = ({ onEndDay }) => {
   const [showBills, setShowBills] = useState(false);
   const [currentSales, setCurrentSales] = useState({ total: 0, profit: 0 });
   const searchTimeoutRef = useRef(null);
+  const quantityInputRef = useRef(null);  // ← ADD THIS
+  const searchInputRef = useRef(null); 
 
   useEffect(() => {
     loadCurrentDaySummary();
   }, []);
+
+  useEffect(() => {
+  const handleGlobalKeyDown = (e) => {
+    // Ctrl key to save/print bill
+    if (e.ctrlKey && !e.shiftKey && !e.altKey && cart.length > 0) {
+      e.preventDefault();
+      handlePrintSave();
+    }
+  };
+
+  window.addEventListener('keydown', handleGlobalKeyDown);
+  
+  return () => {
+    window.removeEventListener('keydown', handleGlobalKeyDown);
+  };
+}, [cart]);
 
   const loadCurrentDaySummary = async () => {
     try {
@@ -81,6 +100,14 @@ const SellingScreen = ({ onEndDay }) => {
     
     setSearchQuery('');
     setSuggestions([]);
+
+    setTimeout(() => {
+    const qtyInput = document.getElementById(`qty-${product.productId}`);
+    if (qtyInput) {
+      qtyInput.focus();
+      qtyInput.select();  // Also select the text so user can type immediately
+    }
+  }, 100);
   };
 
   const updateQuantity = (productId, quantity) => {
@@ -110,95 +137,7 @@ const SellingScreen = ({ onEndDay }) => {
 
   const printBill = (bill) => {
     const printWindow = window.open('', '', 'width=400,height=600');
-    const date = new Date(bill.date).toLocaleDateString('en-CA');
-    
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Bill ${bill.billId}</title>
-          <style>
-            @media print {
-              @page { size: 80mm auto; margin: 0; }
-              body { margin: 0; padding: 0; }
-            }
-            body { 
-              font-family: 'Courier New', monospace; 
-              width: 300px; 
-              margin: 0 auto;
-              padding: 10px;
-              font-size: 12px;
-            }
-            .header { text-align: center; margin-bottom: 10px; }
-            .header h2 { margin: 5px 0; font-size: 18px; font-weight: bold; }
-            .header p { margin: 3px 0; font-size: 11px; }
-            .bill-info { margin: 10px 0; }
-            .separator { border-top: 1px dashed #000; margin: 8px 0; }
-            table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-            th { text-align: left; font-size: 11px; padding: 5px 0; border-bottom: 1px solid #000; }
-            td { padding: 5px 0; font-size: 11px; }
-            .item-id { width: 15%; }
-            .item-name { width: 30%; }
-            .quantity { width: 15%; text-align: center; }
-            .price { width: 20%; text-align: right; }
-            .total { width: 20%; text-align: right; }
-            .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px dashed #000; }
-            .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; padding: 5px 0; }
-            .footer { text-align: center; margin-top: 15px; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h2>Jagath Store</h2>
-            <p>Pasal Mawatha, Okkampitiya</p>
-            <p>Tel :- 0713364743</p>
-          </div>
-          <div class="bill-info">
-            <p><strong>Bill ID – ${bill.billId.padStart(6, '0')}</strong></p>
-            <p>${date.replace(/-/g, '.')} | ${bill.time}</p>
-          </div>
-          <div class="separator"></div>
-          <table>
-            <thead>
-              <tr>
-                <th class="item-id">Item ID</th>
-                <th class="item-name">Item name</th>
-                <th class="quantity">quantity</th>
-                <th class="price">price</th>
-                <th class="total">total price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${bill.items.map(item => `
-                <tr>
-                  <td class="item-id">${item.productId}</td>
-                  <td class="item-name">${item.name}</td>
-                  <td class="quantity">${item.quantity}</td>
-                  <td class="price">${item.price.toFixed(2)}</td>
-                  <td class="total">${item.total.toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="separator"></div>
-          <div class="total-section">
-            <div class="total-row">
-              <span>Total Amount ----------→</span>
-              <span>${bill.totalAmount.toFixed(2)}/=</span>
-            </div>
-          </div>
-          <div class="footer">
-            <p><strong>Thank You..!</strong></p>
-          </div>
-          <script>
-            window.onload = function() {
-              window.print();
-              window.onafterprint = function() { window.close(); };
-            };
-          </script>
-        </body>
-      </html>
-    `);
-    
+    printWindow.document.write(getBillHTML(bill));
     printWindow.document.close();
   };
 
@@ -267,10 +206,18 @@ const SellingScreen = ({ onEndDay }) => {
           
           <div className="relative mb-4">
             <input
+              ref={searchInputRef}
               type="text"
               placeholder="Search by Product ID or Name..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
+              onKeyDown={(e) => {  // ← ADD THIS ENTIRE BLOCK
+                    if (e.key === 'Enter' && suggestions.length > 0) {
+                    e.preventDefault();
+                    addToCart(suggestions[0]);
+                    quantityInputRef.current?.focus();
+                     }
+                  }}
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             
@@ -359,9 +306,16 @@ const SellingScreen = ({ onEndDay }) => {
                     </div>
                     <div className="flex justify-between items-center">
                       <input
+                        id={`qty-${item.productId}`}
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
+                        onKeyDown={(e) => {  // ← ADD THIS ENTIRE BLOCK
+                                if (e.key === 'Enter') {
+                                e.preventDefault();
+                                searchInputRef.current?.focus();
+                               }
+                         }}
                         className="w-20 px-2 py-1 border rounded text-center"
                         min="1"
                       />
