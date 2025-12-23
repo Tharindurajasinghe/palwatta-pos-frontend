@@ -211,7 +211,7 @@ const SellingScreen = ({ onEndDay }) => {
               placeholder="Search by Product ID or Name..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              onKeyDown={(e) => {  // ← ADD THIS ENTIRE BLOCK
+              onKeyDown={(e) => {  
                     if (e.key === 'Enter' && suggestions.length > 0) {
                     e.preventDefault();
                     addToCart(suggestions[0]);

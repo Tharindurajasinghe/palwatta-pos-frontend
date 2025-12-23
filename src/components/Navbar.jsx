@@ -8,6 +8,34 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
     { id: 'checkbill', label: 'Check Bill', icon: '🧾' }
   ];
 
+  const handleNavClick = async (screenId) => {
+  if (screenId === 'summary') {
+    const password = prompt('Enter password to access Summary:');
+    
+    if (password === null) return;
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setActiveScreen(screenId);
+      } else {
+        alert('Incorrect password!');
+      }
+    } catch (error) {
+      alert('Error verifying password');
+    }
+  } else {
+    setActiveScreen(screenId);
+  }
+};
+
   const handleLogout = () => {
     const confirmLogout = window.confirm(
       'Are you sure you want to logout?'
@@ -27,7 +55,7 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
             {navItems.map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveScreen(item.id)}
+                onClick={() => handleNavClick(item.id)}
                 className={`px-4 py-2 rounded transition ${
                   activeScreen === item.id
                     ? 'bg-green-700'
