@@ -23,6 +23,7 @@ const api = {
   getBillsByDate: (date) => axios.get(`${API_URL}/bills/date/${date}`),
   getBill: (billId) => axios.get(`${API_URL}/bills/${billId}`),
   getPast30DaysBills: () => axios.get(`${API_URL}/bills/history/past30days`),
+  deleteBill: (billId) => axios.delete(`${API_URL}/bills/${billId}`),
   
   // Day
   getCurrentDaySummary: () => axios.get(`${API_URL}/day/current`),

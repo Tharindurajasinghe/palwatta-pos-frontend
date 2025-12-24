@@ -69,6 +69,31 @@ const CheckBill = () => {
     }
   };
 
+  // Add this function inside CheckBill component
+const handleDeleteBill = async () => {
+  if (!selectedBill) return;
+
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete Bill #${selectedBill.billId}?`
+  );
+  if (!confirmDelete) return;
+
+  try {
+    await api.deleteBill(selectedBill.billId); // <-- call backend delete API
+    alert(`Bill #${selectedBill.billId} deleted successfully`);
+    setShowBillDetails(false); // close details
+    // Reload bills list
+    if (selectedDate) {
+      searchBillsByDate(selectedDate);
+    } else {
+      loadTodayBills();
+    }
+  } catch (error) {
+    alert(error.response?.data?.message || 'Error deleting bill');
+  }
+};
+
+
   return (
     <div className="grid grid-cols-2 gap-6">
       <div className="bg-white p-6 rounded-lg shadow">
@@ -194,6 +219,13 @@ const CheckBill = () => {
                 </p>
               </div>
             </div>
+
+            <button
+  onClick={handleDeleteBill}
+  className="w-full mb-2 bg-red-600 text-white py-2 rounded hover:bg-red-700"
+>
+  Remove Bill
+</button>
 
             <button
               onClick={() => setShowBillDetails(false)}

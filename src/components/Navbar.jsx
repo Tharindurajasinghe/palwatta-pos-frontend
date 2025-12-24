@@ -56,7 +56,7 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
 
   return (
     <>
-      <nav className="bg-green-600 text-white shadow-lg">
+      <nav className="bg-green-600 text-white shadow-lg sticky top-0">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between py-4">
             <h1 className="text-2xl font-bold">Jagath Store</h1>
