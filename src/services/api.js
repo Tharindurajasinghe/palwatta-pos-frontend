@@ -1,10 +1,12 @@
 import axios from 'axios';
 
+
 const API_URL = 'http://localhost:5000/api';
 
 const api = {
   // Auth
   login: (credentials) => axios.post(`${API_URL}/auth/login`, credentials),
+  verifyPassword: (data) => axios.post(`${API_URL}/auth/verify-password`, data),
   
   // Products
   getProducts: () => axios.get(`${API_URL}/products`),

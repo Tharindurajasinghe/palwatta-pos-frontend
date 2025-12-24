@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getBillHTML } from '../components/BillView';
 import api from '../services/api';
+import UptoNowBox from './UptoNowBox';
+
 
 const SellingScreen = ({ onEndDay }) => {
   const [cart, setCart] = useState([]);
@@ -10,8 +12,9 @@ const SellingScreen = ({ onEndDay }) => {
   const [showBills, setShowBills] = useState(false);
   const [currentSales, setCurrentSales] = useState({ total: 0, profit: 0 });
   const searchTimeoutRef = useRef(null);
-  const quantityInputRef = useRef(null);  // ← ADD THIS
+  const quantityInputRef = useRef(null);
   const searchInputRef = useRef(null); 
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   useEffect(() => {
     loadCurrentDaySummary();
@@ -33,6 +36,13 @@ const SellingScreen = ({ onEndDay }) => {
   };
 }, [cart]);
 
+useEffect(() => {
+  if (selectedSuggestionIndex >= 0) {
+    const element = document.querySelector(`[data-suggestion-index="${selectedSuggestionIndex}"]`);
+    element?.scrollIntoView({ block: 'nearest' });
+  }
+}, [selectedSuggestionIndex]);
+
   const loadCurrentDaySummary = async () => {
     try {
         console.log('Loading current day summary...');
@@ -49,6 +59,7 @@ const SellingScreen = ({ onEndDay }) => {
 
   const handleSearch = async (value) => {
     setSearchQuery(value);
+    setSelectedSuggestionIndex(-1);
     
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -211,37 +222,53 @@ const SellingScreen = ({ onEndDay }) => {
               placeholder="Search by Product ID or Name..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              onKeyDown={(e) => {  
-                    if (e.key === 'Enter' && suggestions.length > 0) {
-                    e.preventDefault();
-                    addToCart(suggestions[0]);
-                    quantityInputRef.current?.focus();
-                     }
-                  }}
+              onKeyDown={(e) => {
+                 if (e.key === 'Enter' && suggestions.length > 0) {
+                     e.preventDefault();
+                      const index = selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0;
+                       addToCart(suggestions[index]);
+                       } else if (e.key === 'ArrowDown') {
+                         e.preventDefault();
+                          setSelectedSuggestionIndex(prev => 
+                            prev < suggestions.length - 1 ? prev + 1 : prev
+                              );
+                              } else if (e.key === 'ArrowUp') {
+                                  e.preventDefault();
+                             setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
+                               } else if (e.key === 'Escape') {
+                                 setSuggestions([]);
+                             setSelectedSuggestionIndex(-1);
+                                         }
+                 }}
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             
             {suggestions.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-white border rounded shadow-lg max-h-60 overflow-y-auto">
-                {suggestions.map(product => (
-                  <div
-                    key={product.productId}
-                    onClick={() => addToCart(product)}
-                    className="p-3 hover:bg-gray-100 cursor-pointer border-b"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-semibold">{product.name}</p>
-                        <p className="text-sm text-gray-600">
-                          ID: {product.productId} | Stock: {product.stock}
-                        </p>
-                      </div>
-                      <p className="font-bold text-green-600">
-                        Rs. {product.sellingPrice.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+                {suggestions.map((product, index) => (
+  <div
+    key={product.productId}
+    data-suggestion-index={index}
+    onClick={() => addToCart(product)}
+    className={`p-3 cursor-pointer border-b ${
+      index === selectedSuggestionIndex 
+        ? 'bg-green-100' 
+        : 'hover:bg-gray-100'
+    }`}
+  >
+    <div className="flex justify-between items-center">
+      <div>
+        <p className="font-semibold">{product.name}</p>
+        <p className="text-sm text-gray-600">
+          ID: {product.productId} | Stock: {product.stock}
+        </p>
+      </div>
+      <p className="font-bold text-green-600">
+        Rs. {product.sellingPrice.toFixed(2)}
+      </p>
+    </div>
+  </div>
+))}
               </div>
             )}
           </div>
@@ -251,10 +278,10 @@ const SellingScreen = ({ onEndDay }) => {
               <span className="font-semibold">Up to Now Sell:</span>
               <span className="text-blue-600 font-bold">Rs. {currentSales.total.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
+           { /*<div className="flex justify-between">
               <span className="font-semibold">Profit:</span>
               <span className="text-green-600 font-bold">Rs. {currentSales.profit.toFixed(2)}</span>
-            </div>
+            </div> */}
           </div>
 
           <div className="flex gap-2">
@@ -346,40 +373,11 @@ const SellingScreen = ({ onEndDay }) => {
           )}
         </div>
       </div>
-
-      {showBills && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto">
-            <h2 className="text-xl font-bold mb-4">Today's Bills</h2>
-            <table className="w-full">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 text-left">Bill ID</th>
-                  <th className="px-4 py-2 text-left">Time</th>
-                  <th className="px-4 py-2 text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {todayBills.map(bill => (
-                  <tr key={bill.billId} className="border-b">
-                    <td className="px-4 py-2">{bill.billId}</td>
-                    <td className="px-4 py-2">{bill.time}</td>
-                    <td className="px-4 py-2 text-right font-semibold">
-                      Rs. {bill.totalAmount.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button
-              onClick={() => setShowBills(false)}
-              className="mt-4 w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <UptoNowBox
+       show={showBills}
+       bills={todayBills}
+       onClose={() => setShowBills(false)}
+      />
     </div>
   );
 };

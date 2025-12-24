@@ -1,10 +1,10 @@
 export const getBillHTML = (bill) => {
   const date = new Date(bill.date).toLocaleDateString('en-CA');
   
-
   return `
   <html>
     <head>
+      <meta charset="UTF-8">
       <title>Bill ${bill.billId}</title>
       <style>
         @media print {
@@ -23,6 +23,12 @@ export const getBillHTML = (bill) => {
         th, td { font-size: 11px; padding: 4px 0; }
         th { border-bottom: 1px solid #000; }
         .right { text-align: right; }
+        .sinhala-note {
+          font-size: 9px;
+          text-align: center;
+          margin: 8px 0;
+          line-height: 1.4;
+        }
       </style>
     </head>
     <body>
@@ -60,7 +66,13 @@ export const getBillHTML = (bill) => {
 
       <div class="separator"></div>
 
-      <p><b>Total: ${bill.totalAmount.toFixed(2)}/=</b></p>
+      <p><b>Sub Total: ${bill.totalAmount.toFixed(2)}/=</b></p>
+
+      <div class="sinhala-note">
+        <p>යොගට්/ අයිස්ක්‍රීම් නෑවත භාරගනු නොලෑබේ.</p>
+        <p>ඉල්ලුම් කර ඈති භාණ්ඩ රෑගෙන ඒමේදී</p>
+        <p>බිල රෑගෙන ඒම අනිවාර්ය වේ.</p>
+      </div>
 
       <p style="text-align:center"><b>Thank You..!</b></p>
 
