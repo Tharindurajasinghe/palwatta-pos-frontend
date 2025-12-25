@@ -15,6 +15,7 @@ const Login = ({ onLogin }) => {
     try {
       const response = await api.login({ username, password });
       if (response.data.success) {
+        localStorage.setItem('token', response.data.token);
         onLogin();
       }
     } catch (err) {

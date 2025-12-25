@@ -3,38 +3,71 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000/api';
 
+// Create axios instance with interceptor
+const axiosInstance = axios.create({
+  baseURL: API_URL
+});
+
+// Add token to every request
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle 401/403 errors (token expired)
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('jagathStoreLoggedIn');
+      window.location.href = '/';
+    }
+    return Promise.reject(error);
+  }
+);
+
+
 const api = {
   // Auth
-  login: (credentials) => axios.post(`${API_URL}/auth/login`, credentials),
-  verifyPassword: (data) => axios.post(`${API_URL}/auth/verify-password`, data),
+  login: (credentials) => axiosInstance.post(`${API_URL}/auth/login`, credentials),
+  verifyPassword: (data) => axiosInstance.post(`${API_URL}/auth/verify-password`, data),
   
   // Products
-  getProducts: () => axios.get(`${API_URL}/products`),
-  getProduct: (id) => axios.get(`${API_URL}/products/${id}`),
-  searchProducts: (query) => axios.get(`${API_URL}/products/search?query=${query}`),
-  getNextProductId: () => axios.get(`${API_URL}/products/next-id`),
-  addProduct: (product) => axios.post(`${API_URL}/products`, product),
-  updateProduct: (id, product) => axios.put(`${API_URL}/products/${id}`, product),
-  deleteProduct: (id) => axios.delete(`${API_URL}/products/${id}`),
+  getProducts: () => axiosInstance.get(`${API_URL}/products`),
+  getProduct: (id) => axiosInstance.get(`${API_URL}/products/${id}`),
+  searchProducts: (query) => axiosInstance.get(`${API_URL}/products/search?query=${query}`),
+  getNextProductId: () => axiosInstance.get(`${API_URL}/products/next-id`),
+  addProduct: (product) => axiosInstance.post(`${API_URL}/products`, product),
+  updateProduct: (id, product) => axiosInstance.put(`${API_URL}/products/${id}`, product),
+  deleteProduct: (id) => axiosInstance.delete(`${API_URL}/products/${id}`),
   
   // Bills
-  createBill: (billData) => axios.post(`${API_URL}/bills`, billData),
-  getTodayBills: () => axios.get(`${API_URL}/bills/today`),
-  getBillsByDate: (date) => axios.get(`${API_URL}/bills/date/${date}`),
-  getBill: (billId) => axios.get(`${API_URL}/bills/${billId}`),
-  getPast30DaysBills: () => axios.get(`${API_URL}/bills/history/past30days`),
-  deleteBill: (billId) => axios.delete(`${API_URL}/bills/${billId}`),
+  createBill: (billData) => axiosInstance.post(`${API_URL}/bills`, billData),
+  getTodayBills: () => axiosInstance.get(`${API_URL}/bills/today`),
+  getBillsByDate: (date) => axiosInstance.get(`${API_URL}/bills/date/${date}`),
+  getBill: (billId) => axiosInstance.get(`${API_URL}/bills/${billId}`),
+  getPast30DaysBills: () => axiosInstance.get(`${API_URL}/bills/history/past30days`),
+  deleteBill: (billId) => axiosInstance.delete(`${API_URL}/bills/${billId}`),
   
   // Day
-  getCurrentDaySummary: () => axios.get(`${API_URL}/day/current`),
-  endDay: () => axios.post(`${API_URL}/day/end`),
+  getCurrentDaySummary: () => axiosInstance.get(`${API_URL}/day/current`),
+  endDay: () => axiosInstance.post(`${API_URL}/day/end`),
   
   // Summary
-  getDailySummary: (date) => axios.get(`${API_URL}/summary/daily/${date}`),
-  createMonthlySummary: () => axios.post(`${API_URL}/summary/monthly/create`),
-  getMonthlySummary: (month) => axios.get(`${API_URL}/summary/monthly/${month}`),
-  getAllMonthlySummaries: () => axios.get(`${API_URL}/summary/monthly`),
-  getAvailableDates: () => axios.get(`${API_URL}/summary/available-dates`)
+  getDailySummary: (date) => axiosInstance.get(`${API_URL}/summary/daily/${date}`),
+  createMonthlySummary: () => axiosInstance.post(`${API_URL}/summary/monthly/create`),
+  getMonthlySummary: (month) => axiosInstance.get(`${API_URL}/summary/monthly/${month}`),
+  getAllMonthlySummaries: () => axiosInstance.get(`${API_URL}/summary/monthly`),
+  getAvailableDates: () => axiosInstance.get(`${API_URL}/summary/available-dates`)
 };
 
 export default api;

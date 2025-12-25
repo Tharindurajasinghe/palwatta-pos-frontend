@@ -27,6 +27,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('jagathStoreLoggedIn');
+    localStorage.removeItem('token'); 
     setIsLoggedIn(false);
     setActiveScreen('selling');
   };
