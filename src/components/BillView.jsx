@@ -12,7 +12,7 @@ export const getBillHTML = (bill) => {
         }
         body {
           font-family: 'Courier New', monospace;
-          width: 190px;
+          width: 160px;
           margin: 0 auto;
           padding: 5px;
           font-size: 10px;
@@ -38,7 +38,7 @@ export const getBillHTML = (bill) => {
         <p>Tel: 0713364743</p>
       </div>
 
-      <p><b>Bill ID – ${bill.billId.padStart(6, '0')}</b></p>
+      <p><b>Bill ID – ${bill.billId}</b></p>
       <p>${date.replace(/-/g, '.')} | ${bill.time}</p>
 
       <div class="separator"></div>
@@ -47,9 +47,9 @@ export const getBillHTML = (bill) => {
         <thead>
           <tr>
             <th>Name</th>
-            <th>Qty</th>
-            <th class="right">Price</th>
-            <th class="right">Total</th>
+            <th>Qty </th>
+            <th>Price </th>
+            <th class="right">Tot</th>
           </tr>
         </thead>
         <tbody>
@@ -57,8 +57,8 @@ export const getBillHTML = (bill) => {
             <tr>
               <td>${i.name}</td>
               <td>${i.quantity}</td>
-              <td class="right">${i.price.toFixed(2)}</td>
-              <td class="right">${i.total.toFixed(2)}</td>
+              <td>${i.price}</td>
+              <td class="right">${i.total}</td>
             </tr>
           `).join('')}
         </tbody>
