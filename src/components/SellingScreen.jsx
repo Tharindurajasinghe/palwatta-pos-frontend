@@ -202,8 +202,21 @@ useEffect(() => {
     if (!confirm) return;
 
     try {
-      const response = await api.endDay();
-      onEndDay(response.data);
+      // Just get current day summary (already calculated by backend)
+    const response = await api.getCurrentDaySummary();
+    
+    // Pass the data to DayEndSummary page (NOT saving yet)
+    onEndDay({
+      date: response.data.date,
+      items: [], // We'll calculate this from bills
+      totalIncome: response.data.totalSales,
+      totalProfit: response.data.totalProfit,
+      bills: response.data.bills // Pass bills for calculation
+    });
+
+
+      /*const response = await api.endDay();
+      onEndDay(response.data); */
     } catch (error) {
       alert(error.response?.data?.message || 'Error ending day');
     }

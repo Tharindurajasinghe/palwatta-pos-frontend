@@ -3,8 +3,6 @@ import api from '../services/api';
 import AddProduct from './AddProduct';
 import UpdateProduct from './UpdateProduct';
 
-
-
  const Modal = ({ show, onClose, title, children }) => {
     if (!show) return null;
 

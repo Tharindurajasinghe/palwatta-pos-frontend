@@ -1,24 +1,32 @@
 import React from 'react';
 import api from '../services/api.js';
 
-const DayEndSummary = ({ data, onLogout }) => {
-  const handleMakeMonthSummary = async () => {
-    try {
-      await api.createMonthlySummary();
-      alert('Monthly summary created successfully!');
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error creating monthly summary');
-    }
-  };
 
-  const handleSaveAndEnd = () => {
+
+
+const DayEndSummary = ({ data, onLogout }) => {
+
+  const handleMakeMonthSummary = async () => {
+     try { await api.createMonthlySummary();
+       alert('Monthly summary created successfully!');
+       } catch (error) 
+       { alert(error.response?.data?.message || 'Error creating monthly summary'); } };
+
+
+  const handleSaveAndEnd = async() => {
     const confirm = window.confirm(
       'Are you sure you want to save and end?\nThis will logout the system.'
     );
     
-    if (confirm) {
-      onLogout();
-    }
+     if (!confirm) return;
+    try {
+    //save to database
+    await api.endDay();
+    alert('Day ended and saved successfully!');
+    onLogout();
+  } catch (error) {
+    alert(error.response?.data?.message || 'Error saving day summary');
+  }
   };
 
   if (!data) return null;
@@ -91,6 +99,7 @@ const DayEndSummary = ({ data, onLogout }) => {
           Save & End
         </button>
       </div>
+      
     </div>
   );
 };
