@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import api from '../services/api';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
+
 
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,15 +49,22 @@ const Login = ({ onLogin }) => {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <label className="block text-gray-700 mb-2">Password</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500 pr-12"
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute flex items-center right-3 top-1/2 text-sm text-green-600 hover:text-green-400"
+            >
+            {showPassword ? <FaEyeSlash size={23} /> : <FaEye size={23} />}
+            </button>
           </div>
 
           {error && (
