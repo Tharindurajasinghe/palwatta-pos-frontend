@@ -26,7 +26,7 @@ const SellingScreen = ({ onEndDay }) => {
   useEffect(() => {
   const loadProducts = async () => {
     try {
-      const res = await api.getAllProducts(); // already exists in your backend
+      const res = await api.getProducts(); // already exists in your backend
       const index = {};
       res.data.forEach(p => {
         index[p.productId] = p;
