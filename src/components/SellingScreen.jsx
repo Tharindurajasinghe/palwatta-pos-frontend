@@ -15,10 +15,31 @@ const SellingScreen = ({ onEndDay }) => {
   const quantityInputRef = useRef(null);
   const searchInputRef = useRef(null); 
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
+  const [productIndex, setProductIndex] = useState({});
+
 
   useEffect(() => {
     loadCurrentDaySummary();
   }, []);
+
+  //load all product onece
+  useEffect(() => {
+  const loadProducts = async () => {
+    try {
+      const res = await api.getAllProducts(); // already exists in your backend
+      const index = {};
+      res.data.forEach(p => {
+        index[p.productId] = p;
+      });
+      setProductIndex(index);
+    } catch {
+      alert('Products failed to load');
+    }
+  };
+
+  loadProducts();
+   }, []);
+
 
   useEffect(() => {
   const handleGlobalKeyDown = (e) => {
@@ -34,7 +55,7 @@ const SellingScreen = ({ onEndDay }) => {
   return () => {
     window.removeEventListener('keydown', handleGlobalKeyDown);
   };
-}, [cart]);
+   }, [cart]);
 
 useEffect(() => {
   if (selectedSuggestionIndex >= 0) {
@@ -42,6 +63,20 @@ useEffect(() => {
     element?.scrollIntoView({ block: 'nearest' });
   }
 }, [selectedSuggestionIndex]);
+
+//helper to add id 
+const addByProductIdLocal = (value) => {
+  const id = value.padStart(3, '0');
+  const product = productIndex[id];
+
+  if (!product) {
+    alert('Product ID not found');
+    return;
+  }
+
+  addToCart(product);
+};
+
 
   const loadCurrentDaySummary = async () => {
     try {
@@ -235,24 +270,27 @@ useEffect(() => {
               placeholder="Search by Product ID or Name..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              onKeyDown={(e) => {
-                 if (e.key === 'Enter' && suggestions.length > 0) {
-                     e.preventDefault();
-                      const index = selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0;
-                       addToCart(suggestions[index]);
-                       } else if (e.key === 'ArrowDown') {
-                         e.preventDefault();
-                          setSelectedSuggestionIndex(prev => 
-                            prev < suggestions.length - 1 ? prev + 1 : prev
-                              );
-                              } else if (e.key === 'ArrowUp') {
-                                  e.preventDefault();
-                             setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : -1);
-                               } else if (e.key === 'Escape') {
-                                 setSuggestions([]);
-                             setSelectedSuggestionIndex(-1);
+          
+                 onKeyDown={(e) => 
+                  {if (e.key === 'Enter') {
+                    e.preventDefault();
+
+                 // Instant add by ID (no API, no wait)
+                if (/^\d{1,3}$/.test(searchQuery)) {
+                addByProductIdLocal(searchQuery);
+                return;
+                    }
+
+                // Fallback to suggestions
+                if (suggestions.length > 0) {
+                const index = selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0;
+                addToCart(suggestions[index]);
+                 }
+  
+}
+                 
                                          }
-                 }}
+                 } 
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             />
             
