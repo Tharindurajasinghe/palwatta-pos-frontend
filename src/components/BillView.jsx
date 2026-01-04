@@ -66,8 +66,9 @@ export const getBillHTML = (bill) => {
       </table>
 
       <div class="separator"></div>
-
       <p><b>Sub Total: ${bill.totalAmount.toFixed(2)}/=</b></p>
+      <p><b>Cash Paid: ${bill.cash.toFixed(2)}/=</b></p>
+      <p><b>Change: ${bill.change.toFixed(2)}/=</b></p>
 
       <div class="sinhala-note">
         <p>යොගට්/ අයිස්ක්‍රීම් නෑවත භාරගනු නොලෑබේ.</b></p>
