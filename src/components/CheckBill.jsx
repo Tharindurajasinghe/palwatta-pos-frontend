@@ -215,6 +215,14 @@ const handleDeleteBill = async () => {
               <div className="flex justify-between items-center">
                 <p className="text-lg font-bold">Total Amount</p>
                 <p className="text-2xl font-bold text-green-600">
+                  Rs. {selectedBill.cash.toFixed(2)}
+                </p>
+                <p className="text-lg font-bold">Total Amount</p>
+                <p className="text-2xl font-bold text-green-600">
+                  Rs. {selectedBill.change.toFixed(2)}
+                </p>
+                <p className="text-lg font-bold">Total Amount</p>
+                <p className="text-2xl font-bold text-green-600">
                   Rs. {selectedBill.totalAmount.toFixed(2)}
                 </p>
               </div>
