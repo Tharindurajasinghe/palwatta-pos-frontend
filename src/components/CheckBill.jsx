@@ -69,33 +69,31 @@ const CheckBill = () => {
     }
   };
 
-  // Add this function inside CheckBill component
-const handleDeleteBill = async () => {
-  if (!selectedBill) return;
+  const handleDeleteBill = async () => {
+    if (!selectedBill) return;
 
-  const confirmDelete = window.confirm(
-    `Are you sure you want to delete Bill #${selectedBill.billId}?`
-  );
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete Bill #${selectedBill.billId}?`
+    );
+    if (!confirmDelete) return;
 
-  try {
-    await api.deleteBill(selectedBill.billId); // <-- call backend delete API
-    alert(`Bill #${selectedBill.billId} deleted successfully`);
-    setShowBillDetails(false); // close details
-    // Reload bills list
-    if (selectedDate) {
-      searchBillsByDate(selectedDate);
-    } else {
-      loadTodayBills();
+    try {
+      await api.deleteBill(selectedBill.billId);
+      alert(`Bill #${selectedBill.billId} deleted successfully`);
+      setShowBillDetails(false);
+      if (selectedDate) {
+        searchBillsByDate(selectedDate);
+      } else {
+        loadTodayBills();
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error deleting bill');
     }
-  } catch (error) {
-    alert(error.response?.data?.message || 'Error deleting bill');
-  }
-};
-
+  };
 
   return (
     <div className="grid grid-cols-2 gap-6">
+      {/* Left Panel: Bill Search */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-6">Check Bill</h2>
 
@@ -126,7 +124,7 @@ const handleDeleteBill = async () => {
             className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
           >
             <option value="">-- Select Date --</option>
-            {availableDates.map(date => (
+            {availableDates.map((date) => (
               <option key={date.date} value={date.date}>
                 {date.label}
               </option>
@@ -140,7 +138,7 @@ const handleDeleteBill = async () => {
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {bills.length > 0 ? (
-              bills.map(bill => (
+              bills.map((bill) => (
                 <div
                   key={bill.billId}
                   onClick={() => handleBillClick(bill.billId)}
@@ -164,6 +162,7 @@ const handleDeleteBill = async () => {
         </div>
       </div>
 
+      {/* Right Panel: Bill Details */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-6">Bill Details</h2>
 
@@ -211,33 +210,38 @@ const handleDeleteBill = async () => {
               </table>
             </div>
 
-            <div className="bg-green-50 p-4 rounded">
-              <div className="flex justify-between items-center">
-                <p className="text-lg font-bold">Total Amount</p>
-                <p className="text-2xl font-bold text-green-600">
-                  Rs. {selectedBill.cash.toFixed(2)}
+            {/* Cash, Change, Total */}
+            <div className="bg-green-50 p-4 rounded space-y-2">
+              <div className="flex justify-between">
+                <p className="text-lg font-bold">Cash Paid:</p>
+                <p className="text-lg font-bold text-green-600">
+                  Rs. {(selectedBill.cash ?? 0).toFixed(2)}
                 </p>
-                <p className="text-lg font-bold">Total Amount</p>
-                <p className="text-2xl font-bold text-green-600">
-                  Rs. {selectedBill.change.toFixed(2)}
+              </div>
+              <div className="flex justify-between">
+                <p className="text-lg font-bold">Change:</p>
+                <p className="text-lg font-bold text-green-600">
+                  Rs. {(selectedBill.change ?? 0).toFixed(2)}
                 </p>
-                <p className="text-lg font-bold">Total Amount</p>
-                <p className="text-2xl font-bold text-green-600">
-                  Rs. {selectedBill.totalAmount.toFixed(2)}
+              </div>
+              <div className="flex justify-between border-t pt-2">
+                <p className="text-lg font-bold">Total Amount:</p>
+                <p className="text-lg font-bold text-green-600">
+                  Rs. {(selectedBill.totalAmount ?? 0).toFixed(2)}
                 </p>
               </div>
             </div>
 
             <button
-  onClick={handleDeleteBill}
-  className="w-full mb-2 bg-red-600 text-white py-2 rounded hover:bg-red-700"
->
-  Remove Bill
-</button>
+              onClick={handleDeleteBill}
+              className="w-full mb-2 mt-4 bg-red-600 text-white py-2 rounded hover:bg-red-700"
+            >
+              Remove Bill
+            </button>
 
             <button
               onClick={() => setShowBillDetails(false)}
-              className="w-full mt-4 bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
+              className="w-full mt-2 bg-gray-600 text-white py-2 rounded hover:bg-gray-700"
             >
               Close
             </button>
