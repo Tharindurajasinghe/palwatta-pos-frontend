@@ -10,15 +10,11 @@ export const getBillHTML = (bill) => {
         @media print {
           @page { size: 55mm auto; margin: 0; }
         }
-          html, body {
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-
+          
         body {
           font-family: 'Courier New', monospace;
-          width: 55mm;
-          margin: 0;
+          width: 160px;
+          margin: 0 auto;
           padding: 5px;
           font-size: 10px;
         }
