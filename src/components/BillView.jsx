@@ -10,10 +10,15 @@ export const getBillHTML = (bill) => {
         @media print {
           @page { size: 55mm auto; margin: 0; }
         }
+          html, body {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
         body {
           font-family: 'Courier New', monospace;
-          width: 160px;
-          margin: 0 auto;
+          width: 55mm;
+          margin: 0;
           padding: 5px;
           font-size: 10px;
         }
@@ -69,9 +74,9 @@ export const getBillHTML = (bill) => {
       <p><b>Sub Total: ${bill.totalAmount.toFixed(2)}/=</b></p>
 
       <div class="sinhala-note">
-        <p>යොගට්/ අයිස්ක්‍රීම් නෑවත භාරගනු නොලෑබේ.</p>
-        <p>ඉල්ලුම් කර ඈති භාණ්ඩ රෑගෙන ඒමේදී</p>
-        <p>බිල රෑගෙන ඒම අනිවාර්ය වේ.</p>
+        <p>යොගට්/ අයිස්ක්‍රීම් නෑවත භාරගනු නොලෑබේ.</b></p>
+        <p>ඉල්ලුම් කර ඈති භාණ්ඩ රෑගෙන </b>></p>
+        <p>බිල රෑගෙන ඒම අනිවාර්ය වේ.</b></p>
       </div>
 
       <p style="text-align:center"><b>Thank You..!</b></p>
