@@ -243,7 +243,7 @@ const addByProductIdLocal = (value) => {
     // Pass the data to DayEndSummary page (NOT saving yet)
     onEndDay({
       date: response.data.date,
-      items: [], // We'll calculate this from bills
+      items: response.data.items,
       totalIncome: response.data.totalSales,
       totalProfit: response.data.totalProfit,
       bills: response.data.bills // Pass bills for calculation
