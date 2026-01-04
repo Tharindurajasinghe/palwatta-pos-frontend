@@ -44,7 +44,7 @@ const SellingScreen = ({ onEndDay }) => {
         handlePrintSave();
       }
       // Right Shift focuses Cash input
-      if (e.key === 'Shift' && e.getModifierState('Right')) {
+      if (e.code === 'ShiftRight'){
         e.preventDefault();
         cashInputRef.current?.focus();
       }
