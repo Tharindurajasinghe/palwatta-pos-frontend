@@ -270,6 +270,36 @@ const SellingScreen = ({ onEndDay }) => {
                     type="number"
                     value={cash}
                     onChange={(e) => setCash(e.target.value)}
+      onKeyDown={async (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          // Make sure change is updated
+          const cashNum = parseFloat(cash) || 0;
+          const total = getTotal();
+          const newChange = cashNum >= total ? cashNum - total : 0;
+          setChange(newChange);
+
+          // Automatically save cash and change to backend
+          if (cart.length > 0) {
+            try {
+              const billData = {
+                items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
+                cash: cashNum,
+                change: newChange
+              };
+              const response = await api.createBill(billData);
+              alert('Bill saved successfully!');
+              setCart([]);
+              setCash('');
+              setChange(0);
+              loadCurrentDaySummary();
+            } catch (err) {
+              alert(err.response?.data?.message || 'Error saving bill');
+            }
+          }
+        }
+      }}
+
                     className="w-32 px-2 py-1 border rounded text-right"
                   />
                 </div>
