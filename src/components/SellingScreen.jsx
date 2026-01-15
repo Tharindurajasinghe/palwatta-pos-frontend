@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getBillHTML } from '../components/BillView';
 import api from '../services/api';
 import UptoNowBox from './UptoNowBox';
+import LowStockAlert from './LowStockAlert';
 
 const SellingScreen = ({ onEndDay }) => {
   const [cart, setCart] = useState([]);
@@ -323,6 +324,11 @@ const SellingScreen = ({ onEndDay }) => {
             </>
           )}
         </div>
+      </div>
+
+      {/*// low stock alert */}
+      <div className="mb-6">
+           <LowStockAlert />
       </div>
 
       <UptoNowBox show={showBills} bills={todayBills} onClose={() => setShowBills(false)} />
