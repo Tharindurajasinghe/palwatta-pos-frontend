@@ -68,7 +68,15 @@ const api = {
   createMonthlySummary: () => axiosInstance.post(`${API_URL}/summary/monthly/create`),
   getMonthlySummary: (month) => axiosInstance.get(`${API_URL}/summary/monthly/${month}`),
   getAllMonthlySummaries: () => axiosInstance.get(`${API_URL}/summary/monthly`),
-  getAvailableDates: () => axiosInstance.get(`${API_URL}/summary/available-dates`)
+  getAvailableDates: () => axiosInstance.get(`${API_URL}/summary/available-dates`),
+
+  // Categories
+getCategories: () => axiosInstance.get('/categories'),
+getCategory: (id) => axiosInstance.get(`/categories/${id}`),
+addCategory: (category) => axiosInstance.post('/categories', category),
+updateCategory: (id, category) => axiosInstance.put(`/categories/${id}`, category),
+deleteCategory: (id) => axiosInstance.delete(`/categories/${id}`),
+getCategoryProducts: (id) => axiosInstance.get(`/categories/${id}/products`),
 };
 
 export default api;

@@ -2,42 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import AddProduct from './AddProduct';
 import UpdateProduct from './UpdateProduct';
-
- const Modal = ({ show, onClose, title, children }) => {
-    if (!show) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{title}</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-600 hover:text-gray-800 text-2xl"
-            >
-              ×
-            </button>
-          </div>
-          {children}
-        </div>
-      </div>
-    );
-  };
-
+import CategoryManagement from './CategoryManagement';
 
 const StoreManagement = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [nextId, setNextId] = useState('');
   const searchTimeoutRef = useRef(null);
 
   const [formData, setFormData] = useState({
     productId: '',
     name: '',
+    categoryId: '',
     stock: '',
     buyingPrice: '',
     sellingPrice: ''
@@ -45,46 +27,61 @@ const StoreManagement = () => {
 
   useEffect(() => {
     loadProducts();
+    loadCategories();
   }, []);
+
+  useEffect(() => {
+    filterProducts();
+  }, [selectedCategory, searchQuery, products]);
 
   const loadProducts = async () => {
     try {
       const response = await api.getProducts();
       setProducts(response.data);
-      setFilteredProducts(response.data);
     } catch (error) {
       console.error('Error loading products:', error);
     }
   };
 
+  const loadCategories = async () => {
+    try {
+      const response = await api.getCategories();
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const filterProducts = () => {
+    let filtered = products;
+
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter(p => p.categoryId === selectedCategory);
+    }
+
+    // Filter by search
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.productId.includes(searchQuery)
+      );
+    }
+
+    setFilteredProducts(filtered);
+  };
+
   const handleSearch = (value) => {
     setSearchQuery(value);
-    
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (value.trim() === '') {
-      setFilteredProducts(products);
-      return;
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      const filtered = products.filter(product => 
-        product.name.toLowerCase().includes(value.toLowerCase()) ||
-        product.productId.includes(value)
-      );
-      setFilteredProducts(filtered);
-    }, 300);
   };
 
   const handleAddProduct = async () => {
     try {
       const response = await api.getNextProductId();
-      setNextId(response.data.productId);
       setFormData({
         productId: response.data.productId,
         name: '',
+        categoryId: '',
         stock: '',
         buyingPrice: '',
         sellingPrice: ''
@@ -97,8 +94,8 @@ const StoreManagement = () => {
 
   const handleSubmitAdd = async (e) => {
     e.preventDefault();
-    
-    if (!formData.name || !formData.stock || !formData.buyingPrice || !formData.sellingPrice) {
+
+    if (!formData.name || !formData.categoryId || !formData.stock || !formData.buyingPrice || !formData.sellingPrice) {
       alert('Please fill all fields');
       return;
     }
@@ -107,6 +104,7 @@ const StoreManagement = () => {
       await api.addProduct({
         productId: formData.productId,
         name: formData.name,
+        categoryId: formData.categoryId,
         stock: parseInt(formData.stock),
         buyingPrice: parseFloat(formData.buyingPrice),
         sellingPrice: parseFloat(formData.sellingPrice)
@@ -125,6 +123,7 @@ const StoreManagement = () => {
     setFormData({
       productId: product.productId,
       name: product.name,
+      categoryId: product.categoryId,
       stock: product.stock,
       buyingPrice: product.buyingPrice,
       sellingPrice: product.sellingPrice
@@ -138,6 +137,7 @@ const StoreManagement = () => {
     try {
       await api.updateProduct(formData.productId, {
         name: formData.name,
+        categoryId: formData.categoryId,
         stock: parseInt(formData.stock),
         buyingPrice: parseFloat(formData.buyingPrice),
         sellingPrice: parseFloat(formData.sellingPrice)
@@ -164,19 +164,49 @@ const StoreManagement = () => {
     }
   };
 
- 
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(c => c.categoryId === categoryId);
+    return category ? category.name : 'Unknown';
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Store Management</h2>
-        <button
-          onClick={handleAddProduct}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-semibold"
-        >
-          + Add New Product
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowCategoryModal(true)}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold"
+          >
+            📁 Add/Remove Category
+          </button>
+          <button
+            onClick={handleAddProduct}
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 font-semibold"
+          >
+            + Add New Product
+          </button>
+        </div>
       </div>
 
+      {/* Category Filter */}
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2 font-semibold">Category</label>
+        <select
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="w-64 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          <option value="">All Categories</option>
+          {categories.map(cat => (
+            <option key={cat.categoryId} value={cat.categoryId}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Search Bar */}
       <div className="mb-6">
         <input
           type="text"
@@ -192,6 +222,7 @@ const StoreManagement = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-3 text-left">Item ID</th>
+              <th className="px-4 py-3 text-left">Category</th>
               <th className="px-4 py-3 text-left">Item Name</th>
               <th className="px-4 py-3 text-left">In Stock</th>
               <th className="px-4 py-3 text-left">Buying Price</th>
@@ -203,6 +234,11 @@ const StoreManagement = () => {
             {filteredProducts.map(product => (
               <tr key={product.productId} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-3 font-semibold">{product.productId}</td>
+                <td className="px-4 py-3">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+                    {getCategoryName(product.categoryId)}
+                  </span>
+                </td>
                 <td className="px-4 py-3">{product.name}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded ${
@@ -241,12 +277,21 @@ const StoreManagement = () => {
         )}
       </div>
 
+      <CategoryManagement
+        show={showCategoryModal}
+        onClose={() => setShowCategoryModal(false)}
+        onCategoryChange={() => {
+          loadCategories();
+          loadProducts();
+        }}
+      />
+
       <AddProduct
-         showAddModal={showAddModal}
-         setShowAddModal={setShowAddModal}
-         formData={formData}
-         setFormData={setFormData}
-         handleSubmitAdd={handleSubmitAdd}
+        showAddModal={showAddModal}
+        setShowAddModal={setShowAddModal}
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmitAdd={handleSubmitAdd}
       />
 
       <UpdateProduct
@@ -256,7 +301,6 @@ const StoreManagement = () => {
         setFormData={setFormData}
         handleSubmitUpdate={handleSubmitUpdate}
       />
-      
     </div>
   );
 };
