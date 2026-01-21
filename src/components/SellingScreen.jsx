@@ -3,6 +3,8 @@ import { getBillHTML } from '../components/BillView';
 import api from '../services/api';
 import UptoNowBox from './UptoNowBox';
 import LowStockAlert from './LowStockAlert';
+import LoadingOverlay from '../components/LoadingOverlay';
+
 
 const SellingScreen = ({ onEndDay }) => {
   const [cart, setCart] = useState([]);
@@ -13,6 +15,7 @@ const SellingScreen = ({ onEndDay }) => {
   const [currentSales, setCurrentSales] = useState({ total: 0, profit: 0 });
   const [cash, setCash] = useState('');
   const [change, setChange] = useState(0);
+  const [loading, setLoading] = useState(false);
   const searchTimeoutRef = useRef(null);
   const quantityInputRef = useRef(null);
   const searchInputRef = useRef(null); 
@@ -163,14 +166,19 @@ const SellingScreen = ({ onEndDay }) => {
   const handleEndDay = async () => {
     const confirm = window.confirm('Are you sure you want to end the day?\nThis will create a daily summary and close today\'s sales.');
     if (!confirm) return;
+     setLoading(true);
     try {
       const response = await api.getCurrentDaySummary();
       onEndDay({ date: response.data.date, items: response.data.items, totalIncome: response.data.totalSales, totalProfit: response.data.totalProfit, bills: response.data.bills });
-    } catch { alert('Error ending day'); }
+    } catch (error){
+      setLoading(false);
+       alert(error.response?.data?.message || 'Error ending day'); }
   };
 
   return (
     <div>
+      {loading && <LoadingOverlay message="Creating day-end summary..." />}
+
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Add Items to Bill</h2>
