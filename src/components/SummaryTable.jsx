@@ -11,7 +11,8 @@ const SummaryTable = ({ items }) => (
         </tr>
       </thead>
       <tbody>
-        {items.map(item => (
+        {items.sort((a, b) => a.productId.localeCompare(b.productId))
+        .map(item => (
           <tr key={item.productId} className="border-b">
             <td className="px-4 py-2">{item.productId}</td>
             <td className="px-4 py-2">{item.name}</td>

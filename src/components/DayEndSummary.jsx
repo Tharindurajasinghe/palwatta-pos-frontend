@@ -62,7 +62,8 @@ const DayEndSummary = ({ data, onLogout }) => {
               </tr>
             </thead>
             <tbody>
-              {data.items.map(item => (
+              {data.items.sort((a, b) => a.productId.localeCompare(b.productId))
+              .map(item => (
                 <tr key={item.productId} className="border-b">
                   <td className="px-4 py-3">{item.productId}</td>
                   <td className="px-4 py-3">{item.name}</td>
