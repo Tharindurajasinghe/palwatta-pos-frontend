@@ -153,6 +153,9 @@ const SellingScreen = ({ onEndDay }) => {
       alert('Bill saved successfully!');
       setCart([]); setCash(''); setChange(0);
       loadCurrentDaySummary();
+      setTimeout(() => {
+       searchInputRef.current?.focus();
+      }, 100);
     } catch (error) {
       alert(error.response?.data?.message || 'Error saving bill');
     }
@@ -302,6 +305,9 @@ const SellingScreen = ({ onEndDay }) => {
                              setCash('');
                              setChange(0);
                              loadCurrentDaySummary();
+                             setTimeout(() => {
+                             searchInputRef.current?.focus();
+                             }, 100);
                              } catch (err) {
                              alert(err.response?.data?.message || 'Error saving bill');
                              }
