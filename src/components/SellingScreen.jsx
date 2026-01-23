@@ -194,31 +194,48 @@ const SellingScreen = ({ onEndDay }) => {
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={(e) => {
-                if (suggestions.length === 0) return;
-                // Arrow Down
-                  if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    setSelectedSuggestionIndex(prev =>
-                      prev < suggestions.length - 1 ? prev + 1 : 0
-                    );
-                  }
+                              // Arrow navigation (keep this)
+                if (e.key === 'ArrowDown' && suggestions.length > 0) {
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev =>
+                    prev < suggestions.length - 1 ? prev + 1 : 0
+                  );
+                  return;
+                }
 
-                  // Arrow Up
-                  if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    setSelectedSuggestionIndex(prev =>
-                      prev > 0 ? prev - 1 : suggestions.length - 1
-                    );
-                  }
+                if (e.key === 'ArrowUp' && suggestions.length > 0) {
+                  e.preventDefault();
+                  setSelectedSuggestionIndex(prev =>
+                    prev > 0 ? prev - 1 : suggestions.length - 1
+                  );
+                  return;
+                }
+
+                // ENTER key — IMMEDIATE ADD
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  if (/^\d{1,3}$/.test(searchQuery)) { addByProductIdLocal(searchQuery); return; }
-                  // Select highlighted suggestion
-                    const index = selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0;
-                    if (suggestions[index]) {
-                      addToCart(suggestions[index]);
-                    }
-                  if (suggestions.length > 0) { const index = selectedSuggestionIndex >= 0 ? selectedSuggestionIndex : 0; addToCart(suggestions[index]); }
+
+                  // 🔴 stop pending debounce search
+                  if (searchTimeoutRef.current) {
+                    clearTimeout(searchTimeoutRef.current);
+                  }
+
+                  // 1️⃣ If product ID typed → add from local index (FAST)
+                  if (/^\d{1,3}$/.test(searchQuery)) {
+                    addByProductIdLocal(searchQuery);
+                    return;
+                  }
+
+                  // 2️⃣ If suggestion selected → add it
+                  if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
+                    addToCart(suggestions[selectedSuggestionIndex]);
+                    return;
+                  }
+
+                  // 3️⃣ Fallback → first suggestion
+                  if (suggestions.length > 0) {
+                    addToCart(suggestions[0]);
+                  }
                 }
               }}
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
