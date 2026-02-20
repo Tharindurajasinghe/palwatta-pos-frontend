@@ -6,7 +6,8 @@ const API_URL = import.meta.env.VITE_BACKEND_URL;
 
 // Create axios instance with interceptor
 const axiosInstance = axios.create({
-  baseURL: API_URL
+  baseURL: API_URL,
+  timeout: 60000
 });
 
 // Add token to every request
