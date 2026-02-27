@@ -28,7 +28,9 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    const url = error.config?.url || '';
+    const isPagePasswordCheck = url.includes('verify-page-password');
+    if (!isPagePasswordCheck && (error.response?.status === 401 || error.response?.status === 403)) {
       localStorage.removeItem('token');
       localStorage.removeItem('jagathStoreLoggedIn');
       window.location.href = '/';
@@ -42,6 +44,7 @@ const api = {
   // Auth
   login: (credentials) => axiosInstance.post(`${API_URL}/auth/login`, credentials),
   verifyPassword: (data) => axiosInstance.post(`${API_URL}/auth/verify-password`, data),
+  verifyPagePassword: (data) => axiosInstance.post(`${API_URL}/auth/verify-page-password`, data),
   
   // Products
   getProducts: () => axiosInstance.get(`${API_URL}/products`),
