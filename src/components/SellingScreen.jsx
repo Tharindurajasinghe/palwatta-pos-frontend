@@ -15,29 +15,31 @@ const SellingScreen = ({ onEndDay }) => {
   const [currentSales, setCurrentSales] = useState({ total: 0, profit: 0 });
   const [cash, setCash] = useState('');
   const [change, setChange] = useState(0);
-  const [loading, setLoading] = useState(false);
+
+  // loading state: null = no overlay, string = show overlay with that message
+  const [loadingMessage, setLoadingMessage] = useState(null);
+
   const searchTimeoutRef = useRef(null);
   const quantityInputRef = useRef(null);
-  const searchInputRef = useRef(null); 
-  const cashInputRef = useRef(null); 
+  const searchInputRef = useRef(null);
+  const cashInputRef = useRef(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [productIndex, setProductIndex] = useState({});
+  const [pageReady, setPageReady] = useState(false);
 
-  useEffect(() => { loadCurrentDaySummary(); }, []);
-
-  // Load all products once
+  // On mount: load products and day summary together, show overlay until both done
   useEffect(() => {
-    const loadProducts = async () => {
+    const initialLoad = async () => {
+      setLoadingMessage('Loading...');
       try {
-        const res = await api.getProducts();
-        const index = {};
-        res.data.forEach(p => { index[p.productId] = p; });
-        setProductIndex(index);
-      } catch {
-        alert('Products failed to load');
+        await Promise.all([loadProducts(), loadCurrentDaySummary()]);
+      } finally {
+        setLoadingMessage(null);
+        setPageReady(true);
+        setTimeout(() => searchInputRef.current?.focus(), 100);
       }
     };
-    loadProducts();
+    initialLoad();
   }, []);
 
   // Global keydown: Ctrl to print/save, Right Shift to focus cash
@@ -48,7 +50,7 @@ const SellingScreen = ({ onEndDay }) => {
         handlePrintSave();
       }
       // Right Shift focuses Cash input
-      if (e.code === 'ShiftRight'){
+      if (e.code === 'ShiftRight') {
         e.preventDefault();
         cashInputRef.current?.focus();
       }
@@ -71,11 +73,15 @@ const SellingScreen = ({ onEndDay }) => {
     setChange(cashNum >= total ? cashNum - total : 0);
   }, [cash, cart]);
 
-  const addByProductIdLocal = (value) => {
-    const id = value.padStart(3, '0');
-    const product = productIndex[id];
-    if (!product) { alert('Product ID not found'); return; }
-    addToCart(product);
+  const loadProducts = async () => {
+    try {
+      const res = await api.getProducts();
+      const index = {};
+      res.data.forEach(p => { index[p.productId] = p; });
+      setProductIndex(index);
+    } catch {
+      alert('Products failed to load');
+    }
   };
 
   const loadCurrentDaySummary = async () => {
@@ -85,6 +91,13 @@ const SellingScreen = ({ onEndDay }) => {
     } catch (error) {
       console.error('Error loading day summary:', error);
     }
+  };
+
+  const addByProductIdLocal = (value) => {
+    const id = value.padStart(3, '0');
+    const product = productIndex[id];
+    if (!product) { alert('Product ID not found'); return; }
+    addToCart(product);
   };
 
   const handleSearch = async (value) => {
@@ -112,7 +125,7 @@ const SellingScreen = ({ onEndDay }) => {
       setCart(cart.map(item => item.productId === product.productId ? { ...item, quantity: item.quantity + quantity } : item));
     } else {
       if (quantity > product.stock) { alert(`Insufficient stock! Available: ${product.stock}`); return; }
-      setCart([...cart, { ...product, quantity }]);
+      setCart([...cart, { ...product, quantity, customPrice: product.sellingPrice }]);
     }
     setSearchQuery(''); setSuggestions([]);
     setTimeout(() => {
@@ -128,8 +141,19 @@ const SellingScreen = ({ onEndDay }) => {
     setCart(cart.map(item => item.productId === productId ? { ...item, quantity } : item));
   };
 
+  const updateCustomPrice = (productId, priceStr) => {
+    setCart(cart.map(item =>
+      item.productId === productId ? { ...item, customPrice: priceStr } : item
+    ));
+  };
+
   const removeFromCart = (productId) => { setCart(cart.filter(item => item.productId !== productId)); };
-  const getTotal = () => cart.reduce((sum, item) => sum + (item.sellingPrice * item.quantity), 0);
+
+  const getTotal = () => cart.reduce((sum, item) => {
+    const price = parseFloat(item.customPrice);
+    const effectivePrice = (!isNaN(price) && price > 0) ? price : item.sellingPrice;
+    return sum + (effectivePrice * item.quantity);
+  }, 0);
 
   const printBill = (bill) => {
     const printWindow = window.open('', '', 'width=400,height=600');
@@ -137,55 +161,119 @@ const SellingScreen = ({ onEndDay }) => {
     printWindow.document.close();
   };
 
+  const validatePrices = () => {
+    for (const item of cart) {
+      const price = parseFloat(item.customPrice);
+      if (isNaN(price) || price <= 0) {
+        alert(`Invalid price for "${item.name}". Please enter a valid price.`);
+        return false;
+      }
+      if (price < item.buyingPrice) {
+        alert(`Price for "${item.name}" (Rs. ${price.toFixed(2)}) cannot be less than buying price (Rs. ${item.buyingPrice.toFixed(2)}).`);
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const buildBillItems = () => cart.map(item => {
+    const price = parseFloat(item.customPrice);
+    return {
+      productId: item.productId,
+      quantity: item.quantity,
+      customPrice: (!isNaN(price) && price > 0) ? price : item.sellingPrice
+    };
+  });
+
+  // Shared save logic used by both save paths
+  const saveBill = async (cashNum) => {
+    const total = getTotal();
+    const newChange = cashNum >= total ? cashNum - total : 0;
+    setChange(newChange);
+    const billData = {
+      items: buildBillItems(),
+      cash: cashNum,
+      change: newChange
+    };
+    const response = await api.createBill(billData);
+    return { response, newChange };
+  };
+
   const handlePrintSave = async () => {
     if (cart.length === 0) { alert('Cart is empty!'); return; }
+    if (!validatePrices()) return;
+
     const printConfirm = window.confirm('Do you want to print the bill?\n\nYes - Print and Save\nNo - Save Only');
 
+    setLoadingMessage('Saving bill...');
     try {
-      const billData = {
-        items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
-        cash: parseFloat(cash) || 0,
-        change: change
-      };
-      const response = await api.createBill(billData);
+      const cashNum = parseFloat(cash) || 0;
+      const { response } = await saveBill(cashNum);
       if (printConfirm) printBill(response.data);
-
       alert('Bill saved successfully!');
       setCart([]); setCash(''); setChange(0);
-      loadCurrentDaySummary();
-      setTimeout(() => {
-       searchInputRef.current?.focus();
-      }, 100);
+      await loadCurrentDaySummary();
+      setTimeout(() => searchInputRef.current?.focus(), 100);
     } catch (error) {
       alert(error.response?.data?.message || 'Error saving bill');
+    } finally {
+      setLoadingMessage(null);
+    }
+  };
+
+  const handleCashEnterSave = async () => {
+    if (cart.length === 0) return;
+    if (!validatePrices()) return;
+
+    const cashNum = parseFloat(cash) || 0;
+    setLoadingMessage('Saving bill...');
+    try {
+      await saveBill(cashNum);
+      alert('Bill saved successfully!');
+      setCart([]); setCash(''); setChange(0);
+      await loadCurrentDaySummary();
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Error saving bill');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
   const handleCheckUpToNow = async () => {
-    try { const response = await api.getTodayBills(); setTodayBills(response.data); setShowBills(true); }
-    catch { alert('Error loading bills'); }
+    setLoadingMessage('Loading bills...');
+    try {
+      const response = await api.getTodayBills();
+      setTodayBills(response.data);
+      setShowBills(true);
+    } catch {
+      alert('Error loading bills');
+    } finally {
+      setLoadingMessage(null);
+    }
   };
 
   const handleEndDay = async () => {
     const confirm = window.confirm('Are you sure you want to end the day?\nThis will create a daily summary and close today\'s sales.');
     if (!confirm) return;
-     setLoading(true);
+    setLoadingMessage('Creating day-end summary...');
     try {
       const response = await api.getCurrentDaySummary();
       onEndDay({ date: response.data.date, items: response.data.items, totalIncome: response.data.totalSales, totalProfit: response.data.totalProfit, bills: response.data.bills });
-    } catch (error){
-      setLoading(false);
-       alert(error.response?.data?.message || 'Error ending day'); }
+    } catch (error) {
+      setLoadingMessage(null);
+      alert(error.response?.data?.message || 'Error ending day');
+    }
   };
 
   return (
     <div>
-      {loading && <LoadingOverlay message="Creating day-end summary..." />}
+      {loadingMessage && <LoadingOverlay message={loadingMessage} />}
 
       <div className="grid grid-cols-2 gap-6 mb-6">
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Add Items to Bill</h2>
-          
+
           <div className="relative mb-4">
             <input
               ref={searchInputRef}
@@ -194,7 +282,7 @@ const SellingScreen = ({ onEndDay }) => {
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={(e) => {
-                              // Arrow navigation (keep this)
+                // Arrow navigation
                 if (e.key === 'ArrowDown' && suggestions.length > 0) {
                   e.preventDefault();
                   setSelectedSuggestionIndex(prev =>
@@ -215,24 +303,24 @@ const SellingScreen = ({ onEndDay }) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
 
-                  // 🔴 stop pending debounce search
+                  // stop pending debounce search
                   if (searchTimeoutRef.current) {
                     clearTimeout(searchTimeoutRef.current);
                   }
 
-                  // 1️⃣ If product ID typed → add from local index (FAST)
+                  // 1. If product ID typed → add from local index (FAST)
                   if (/^\d{1,3}$/.test(searchQuery)) {
                     addByProductIdLocal(searchQuery);
                     return;
                   }
 
-                  // 2️⃣ If suggestion selected → add it
+                  // 2. If suggestion selected → add it
                   if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
                     addToCart(suggestions[selectedSuggestionIndex]);
                     return;
                   }
 
-                  // 3️⃣ Fallback → first suggestion
+                  // 3. Fallback → first suggestion
                   if (suggestions.length > 0) {
                     addToCart(suggestions[0]);
                   }
@@ -291,22 +379,69 @@ const SellingScreen = ({ onEndDay }) => {
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <p className="font-semibold">{item.name}</p>
-                        <p className="text-sm text-gray-600">ID: {item.productId} | Rs. {item.sellingPrice.toFixed(2)} each</p>
+                        <p className="text-sm text-gray-500">ID: {item.productId} | Original: Rs. {item.sellingPrice.toFixed(2)}</p>
                       </div>
                       <button onClick={() => removeFromCart(item.productId)} className="text-red-600 hover:text-red-800">✕</button>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center gap-2">
+                      {/* Quantity input — Enter moves focus to price input */}
                       <input
                         id={`qty-${item.productId}`}
                         type="number"
                         value={item.quantity}
                         onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 0)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); searchInputRef.current?.focus(); } }}
-                        className="w-20 px-2 py-1 border rounded text-center"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            document.getElementById(`price-${item.productId}`)?.focus();
+                          }
+                        }}
+                        className="w-16 px-2 py-1 border rounded text-center"
                         min="1"
+                        title="Quantity"
                       />
-                      <p className="font-bold text-green-600">Rs. {(item.sellingPrice * item.quantity).toFixed(2)}</p>
+                      {/* Editable price input */}
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm text-gray-500">Rs.</span>
+                        <input
+                          id={`price-${item.productId}`}
+                          type="number"
+                          value={item.customPrice}
+                          onChange={(e) => updateCustomPrice(item.productId, e.target.value)}
+                          onBlur={(e) => {
+                            const price = parseFloat(e.target.value);
+                            if (isNaN(price) || price <= 0) {
+                              updateCustomPrice(item.productId, item.sellingPrice);
+                            } else if (price < item.buyingPrice) {
+                              alert(`Price cannot be less than buying price (Rs. ${item.buyingPrice.toFixed(2)})`);
+                              updateCustomPrice(item.productId, item.buyingPrice);
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              searchInputRef.current?.focus();
+                            }
+                          }}
+                          className={`w-24 px-2 py-1 border rounded text-center font-semibold ${
+                            parseFloat(item.customPrice) !== item.sellingPrice
+                              ? 'border-orange-400 bg-orange-50 text-orange-700'
+                              : 'border-gray-300'
+                          }`}
+                          min={item.buyingPrice}
+                          step="0.01"
+                          title="Selling Price (editable)"
+                        />
+                      </div>
+                      {/* Line total uses customPrice */}
+                      <p className="font-bold text-green-600 w-20 text-right">
+                        Rs. {(() => { const p = parseFloat(item.customPrice); const ep = (!isNaN(p) && p > 0) ? p : item.sellingPrice; return (ep * item.quantity).toFixed(2); })()}
+                      </p>
                     </div>
+                    {/* Warning when price is modified */}
+                    {!isNaN(parseFloat(item.customPrice)) && parseFloat(item.customPrice) !== item.sellingPrice && (
+                      <p className="text-xs text-orange-600 mt-1">⚠ Price modified from original Rs. {item.sellingPrice.toFixed(2)}</p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -320,39 +455,12 @@ const SellingScreen = ({ onEndDay }) => {
                     type="number"
                     value={cash}
                     onChange={(e) => setCash(e.target.value)}
-                        onKeyDown={async (e) => {
-                               if (e.key === 'Enter') {
-                                 e.preventDefault();
-                                // Make sure change is updated
-                                const cashNum = parseFloat(cash) || 0;
-                                const total = getTotal();
-                                const newChange = cashNum >= total ? cashNum - total : 0;
-                                setChange(newChange);
-
-                               // Automatically save cash and change to backend
-                              if (cart.length > 0) {
-                                    try {
-                                const billData = {
-                              items: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
-                               cash: cashNum,
-                              change: newChange
-                              };
-                             const response = await api.createBill(billData);
-                             alert('Bill saved successfully!');
-                             setCart([]);
-                             setCash('');
-                             setChange(0);
-                             loadCurrentDaySummary();
-                             setTimeout(() => {
-                             searchInputRef.current?.focus();
-                             }, 100);
-                             } catch (err) {
-                             alert(err.response?.data?.message || 'Error saving bill');
-                             }
-                           }
-                          }
-                       }}
-
+                    onKeyDown={async (e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        await handleCashEnterSave();
+                      }
+                    }}
                     className="w-32 px-2 py-1 border rounded text-right"
                   />
                 </div>
@@ -378,9 +486,9 @@ const SellingScreen = ({ onEndDay }) => {
         </div>
       </div>
 
-      {/*// low stock alert */}
+      {/* low stock alert */}
       <div className="mb-6">
-           <LowStockAlert />
+        <LowStockAlert />
       </div>
 
       <UptoNowBox show={showBills} bills={todayBills} onClose={() => setShowBills(false)} />

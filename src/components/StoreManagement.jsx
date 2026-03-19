@@ -3,6 +3,7 @@ import api from '../services/api';
 import AddProduct from './AddProduct';
 import UpdateProduct from './UpdateProduct';
 import CategoryManagement from './CategoryManagement';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const StoreManagement = () => {
   const [products, setProducts] = useState([]);
@@ -16,6 +17,9 @@ const StoreManagement = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const searchTimeoutRef = useRef(null);
 
+  // loadingMessage: null = no overlay, string = show overlay with that message
+  const [loadingMessage, setLoadingMessage] = useState(null);
+
   const [formData, setFormData] = useState({
     productId: '',
     name: '',
@@ -26,8 +30,15 @@ const StoreManagement = () => {
   });
 
   useEffect(() => {
-    loadProducts();
-    loadCategories();
+    const initialLoad = async () => {
+      setLoadingMessage('Loading...');
+      try {
+        await Promise.all([loadProducts(), loadCategories()]);
+      } finally {
+        setLoadingMessage(null);
+      }
+    };
+    initialLoad();
   }, []);
 
   useEffect(() => {
@@ -76,6 +87,7 @@ const StoreManagement = () => {
   };
 
   const handleAddProduct = async () => {
+    setLoadingMessage('Preparing form...');
     try {
       const response = await api.getNextProductId();
       setFormData({
@@ -89,6 +101,8 @@ const StoreManagement = () => {
       setShowAddModal(true);
     } catch (error) {
       alert('Error getting next product ID');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
@@ -100,6 +114,7 @@ const StoreManagement = () => {
       return;
     }
 
+    setLoadingMessage('Adding product...');
     try {
       await api.addProduct({
         productId: formData.productId,
@@ -112,9 +127,11 @@ const StoreManagement = () => {
 
       alert('Product added successfully!');
       setShowAddModal(false);
-      loadProducts();
+      await loadProducts();
     } catch (error) {
       alert(error.response?.data?.message || 'Error adding product');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
@@ -134,6 +151,7 @@ const StoreManagement = () => {
   const handleSubmitUpdate = async (e) => {
     e.preventDefault();
 
+    setLoadingMessage('Updating product...');
     try {
       await api.updateProduct(formData.productId, {
         name: formData.name,
@@ -145,9 +163,11 @@ const StoreManagement = () => {
 
       alert('Product updated successfully!');
       setShowUpdateModal(false);
-      loadProducts();
+      await loadProducts();
     } catch (error) {
       alert(error.response?.data?.message || 'Error updating product');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
@@ -155,12 +175,15 @@ const StoreManagement = () => {
     const confirm = window.confirm('Are you sure you want to delete this product?');
     if (!confirm) return;
 
+    setLoadingMessage('Deleting product...');
     try {
       await api.deleteProduct(productId);
       alert('Product deleted successfully!');
-      loadProducts();
+      await loadProducts();
     } catch (error) {
       alert(error.response?.data?.message || 'Error deleting product');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
@@ -171,6 +194,8 @@ const StoreManagement = () => {
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
+      {loadingMessage && <LoadingOverlay message={loadingMessage} />}
+
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Store Management</h2>
         <div className="flex gap-2">
@@ -280,9 +305,13 @@ const StoreManagement = () => {
       <CategoryManagement
         show={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
-        onCategoryChange={() => {
-          loadCategories();
-          loadProducts();
+        onCategoryChange={async () => {
+          setLoadingMessage('Refreshing...');
+          try {
+            await Promise.all([loadCategories(), loadProducts()]);
+          } finally {
+            setLoadingMessage(null);
+          }
         }}
       />
 

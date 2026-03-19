@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const CheckBill = () => {
   const [billId, setBillId] = useState('');
@@ -9,9 +10,19 @@ const CheckBill = () => {
   const [selectedBill, setSelectedBill] = useState(null);
   const [showBillDetails, setShowBillDetails] = useState(false);
 
+  // loadingMessage: null = no overlay, string = show overlay with that message
+  const [loadingMessage, setLoadingMessage] = useState(null);
+
   useEffect(() => {
-    loadAvailableDates();
-    loadTodayBills();
+    const initialLoad = async () => {
+      setLoadingMessage('Loading...');
+      try {
+        await Promise.all([loadAvailableDates(), loadTodayBills()]);
+      } finally {
+        setLoadingMessage(null);
+      }
+    };
+    initialLoad();
   }, []);
 
   const loadAvailableDates = async () => {
@@ -37,18 +48,21 @@ const CheckBill = () => {
       alert('Please enter a bill ID');
       return;
     }
-
+    setLoadingMessage('Searching bill...');
     try {
       const response = await api.getBill(billId);
       setSelectedBill(response.data);
       setShowBillDetails(true);
     } catch (error) {
       alert('Bill not found');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
   const searchBillsByDate = async (date) => {
     setSelectedDate(date);
+    setLoadingMessage('Loading bills...');
     try {
       const response = await api.getBillsByDate(date);
       setBills(response.data);
@@ -56,16 +70,21 @@ const CheckBill = () => {
     } catch (error) {
       console.error('Error loading bills:', error);
       setBills([]);
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
   const handleBillClick = async (billId) => {
+    setLoadingMessage('Loading bill details...');
     try {
       const response = await api.getBill(billId);
       setSelectedBill(response.data);
       setShowBillDetails(true);
     } catch (error) {
       alert('Error loading bill details');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
@@ -77,22 +96,27 @@ const CheckBill = () => {
     );
     if (!confirmDelete) return;
 
+    setLoadingMessage('Deleting bill...');
     try {
       await api.deleteBill(selectedBill.billId);
       alert(`Bill #${selectedBill.billId} deleted successfully`);
       setShowBillDetails(false);
       if (selectedDate) {
-        searchBillsByDate(selectedDate);
+        await searchBillsByDate(selectedDate);
       } else {
-        loadTodayBills();
+        await loadTodayBills();
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Error deleting bill');
+    } finally {
+      setLoadingMessage(null);
     }
   };
 
   return (
     <div className="grid grid-cols-2 gap-6">
+      {loadingMessage && <LoadingOverlay message={loadingMessage} />}
+
       {/* Left Panel: Bill Search */}
       <div className="bg-white p-6 rounded-lg shadow">
         <h2 className="text-2xl font-bold mb-6">Check Bill</h2>
@@ -104,6 +128,7 @@ const CheckBill = () => {
               type="text"
               value={billId}
               onChange={(e) => setBillId(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') searchBillById(); }}
               placeholder="e.g., 10006"
               className="flex-1 px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             />
