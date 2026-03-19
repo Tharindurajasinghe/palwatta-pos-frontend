@@ -205,7 +205,6 @@ const SellingScreen = ({ onEndDay }) => {
 
     const printConfirm = window.confirm('Do you want to print the bill?\n\nYes - Print and Save\nNo - Save Only');
 
-    setLoadingMessage('Saving bill...');
     try {
       const cashNum = parseFloat(cash) || 0;
       const { response } = await saveBill(cashNum);
@@ -216,8 +215,6 @@ const SellingScreen = ({ onEndDay }) => {
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } catch (error) {
       alert(error.response?.data?.message || 'Error saving bill');
-    } finally {
-      setLoadingMessage(null);
     }
   };
 
@@ -226,7 +223,6 @@ const SellingScreen = ({ onEndDay }) => {
     if (!validatePrices()) return;
 
     const cashNum = parseFloat(cash) || 0;
-    setLoadingMessage('Saving bill...');
     try {
       await saveBill(cashNum);
       alert('Bill saved successfully!');
@@ -235,8 +231,6 @@ const SellingScreen = ({ onEndDay }) => {
       setTimeout(() => searchInputRef.current?.focus(), 100);
     } catch (err) {
       alert(err.response?.data?.message || 'Error saving bill');
-    } finally {
-      setLoadingMessage(null);
     }
   };
 
@@ -384,7 +378,7 @@ const SellingScreen = ({ onEndDay }) => {
                       <button onClick={() => removeFromCart(item.productId)} className="text-red-600 hover:text-red-800">✕</button>
                     </div>
                     <div className="flex justify-between items-center gap-2">
-                      {/* Quantity input — Enter moves focus to price input */}
+                      {/* Quantity input — Enter goes back to search field */}
                       <input
                         id={`qty-${item.productId}`}
                         type="number"
@@ -393,14 +387,14 @@ const SellingScreen = ({ onEndDay }) => {
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
-                            document.getElementById(`price-${item.productId}`)?.focus();
+                            searchInputRef.current?.focus();
                           }
                         }}
                         className="w-16 px-2 py-1 border rounded text-center"
                         min="1"
                         title="Quantity"
                       />
-                      {/* Editable price input */}
+                      {/* Editable price input — only accessible by clicking */}
                       <div className="flex items-center gap-1">
                         <span className="text-sm text-gray-500">Rs.</span>
                         <input
