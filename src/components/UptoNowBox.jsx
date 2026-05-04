@@ -18,7 +18,7 @@ const UptoNowBox = ({ show, bills, onClose }) => {
       </tr>
     </thead>
     <tbody>
-      {bills.map(bill => (
+      {[...bills].reverse().map(bill => (
         <tr key={bill.billId} className="border-b">
           <td className="px-4 py-2">{bill.billId}</td>
           <td className="px-4 py-2">{bill.time}</td>

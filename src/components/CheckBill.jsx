@@ -163,7 +163,7 @@ const CheckBill = () => {
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {bills.length > 0 ? (
-              bills.map((bill) => (
+              [...bills].reverse().map((bill) => (
                 <div
                   key={bill.billId}
                   onClick={() => handleBillClick(bill.billId)}
