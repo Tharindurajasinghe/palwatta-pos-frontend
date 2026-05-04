@@ -267,7 +267,11 @@ const StoreManagement = () => {
                 <td className="px-4 py-3">{product.name}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded ${
-                    product.stock < 10 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                    product.stock === 0
+                   ? 'bg-red-100 text-red-700'
+                   : product.stock <= 10
+                   ? 'bg-yellow-300 text-yellow-700'
+                   : 'bg-green-100 text-green-700'
                   }`}>
                     {product.stock}
                   </span>

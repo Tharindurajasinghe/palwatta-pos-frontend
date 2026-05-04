@@ -6,18 +6,18 @@ const LowStockAlert = () => {
   const [allLowStockItems, setAllLowStockItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState(''); // NEW
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
-    // Refresh every 30 seconds
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
-    filterByCategory();
-  }, [selectedCategory, allLowStockItems]);
+    filterItems();
+  }, [selectedCategory, selectedStatus, allLowStockItems]); // updated dep
 
   const loadData = async () => {
     try {
@@ -25,7 +25,6 @@ const LowStockAlert = () => {
         api.getProducts(),
         api.getCategories()
       ]);
-      
       const lowStock = productsRes.data.filter(product => product.stock <= 10);
       setAllLowStockItems(lowStock);
       setCategories(categoriesRes.data);
@@ -36,13 +35,28 @@ const LowStockAlert = () => {
     }
   };
 
-  const filterByCategory = () => {
+  // NEW: unified filter function replacing filterByCategory
+  const filterItems = () => {
+    let filtered = allLowStockItems;
+
     if (selectedCategory) {
-      const filtered = allLowStockItems.filter(item => item.categoryId === selectedCategory);
-      setLowStockItems(filtered);
-    } else {
-      setLowStockItems(allLowStockItems);
+      filtered = filtered.filter(item => item.categoryId === selectedCategory);
     }
+
+    if (selectedStatus === 'out') {
+      filtered = filtered.filter(item => item.stock === 0);
+    } else if (selectedStatus === 'critical') {
+      filtered = filtered.filter(item => item.stock > 0 && item.stock <= 5);
+    } else if (selectedStatus === 'low') {
+      filtered = filtered.filter(item => item.stock > 5 && item.stock <= 10);
+    }
+
+    setLowStockItems(filtered);
+  };
+
+  // NEW: toggle status - deselects if same button clicked again
+  const handleStatusToggle = (status) => {
+    setSelectedStatus(prev => prev === status ? '' : status);
   };
 
   const getCategoryName = (categoryId) => {
@@ -103,6 +117,66 @@ const LowStockAlert = () => {
         </select>
       </div>
 
+      {/* NEW: Status Filter Buttons */}
+      <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3 flex-wrap">
+        <span className="text-sm font-semibold text-gray-500">Filter by Status:</span>
+
+        {/* Out of Stock */}
+        <button
+          onClick={() => handleStatusToggle('out')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full border-2 text-sm font-semibold transition-all duration-150 ${
+            selectedStatus === 'out'
+              ? 'border-red-500 bg-red-100 text-red-700'
+              : 'border-gray-200 bg-gray-100 text-gray-500 hover:border-red-300 hover:text-red-500'
+          }`}
+        >
+          <span className={`w-2.5 h-2.5 rounded-full border-2 transition-all ${
+            selectedStatus === 'out'
+              ? 'bg-red-500 border-red-500 shadow-[0_0_0_3px_#fee2e2]'
+              : 'border-current'
+          }`} />
+          Out of Stock
+        </button>
+
+        {/* Critical */}
+        <button
+          onClick={() => handleStatusToggle('critical')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full border-2 text-sm font-semibold transition-all duration-150 ${
+            selectedStatus === 'critical'
+              ? 'border-yellow-400 bg-yellow-100 text-yellow-700'
+              : 'border-gray-200 bg-gray-100 text-gray-500 hover:border-yellow-300 hover:text-yellow-600'
+          }`}
+        >
+          <span className={`w-2.5 h-2.5 rounded-full border-2 transition-all ${
+            selectedStatus === 'critical'
+              ? 'bg-yellow-400 border-yellow-400 shadow-[0_0_0_3px_#fef9c3]'
+              : 'border-current'
+          }`} />
+          Critical
+        </button>
+
+        {/* Low */}
+        <button
+          onClick={() => handleStatusToggle('low')}
+          className={`flex items-center gap-2 px-4 py-1.5 rounded-full border-2 text-sm font-semibold transition-all duration-150 ${
+            selectedStatus === 'low'
+              ? 'border-blue-500 bg-blue-100 text-blue-700'
+              : 'border-gray-200 bg-gray-100 text-gray-500 hover:border-blue-300 hover:text-blue-500'
+          }`}
+        >
+          <span className={`w-2.5 h-2.5 rounded-full border-2 transition-all ${
+            selectedStatus === 'low'
+              ? 'bg-blue-500 border-blue-500 shadow-[0_0_0_3px_#dbeafe]'
+              : 'border-current'
+          }`} />
+          Low
+        </button>
+      </div>
+
+      <div>
+        <br/>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-orange-50">
@@ -117,8 +191,8 @@ const LowStockAlert = () => {
           <tbody>
             {lowStockItems.length > 0 ? (
               lowStockItems.map(item => (
-                <tr 
-                  key={item.productId} 
+                <tr
+                  key={item.productId}
                   className={`border-b hover:bg-gray-50 ${
                     item.stock === 0 ? 'bg-red-50' : item.stock <= 5 ? 'bg-orange-50' : ''
                   }`}
@@ -132,9 +206,9 @@ const LowStockAlert = () => {
                   <td className="px-4 py-3">{item.name}</td>
                   <td className="px-4 py-3 text-right">
                     <span className={`font-bold ${
-                      item.stock === 0 ? 'text-red-600' : 
-                      item.stock <= 5 ? 'text-orange-600' : 
-                      'text-yellow-600'
+                      item.stock === 0 ? 'text-red-600' :
+                      item.stock <= 5 ? 'text-yellow-400' :
+                      'text-blue-500'
                     }`}>
                       {item.stock}
                     </span>
@@ -145,11 +219,11 @@ const LowStockAlert = () => {
                         OUT OF STOCK
                       </span>
                     ) : item.stock <= 5 ? (
-                      <span className="bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                      <span className="bg-yellow-400 text-white px-2 py-1 rounded text-xs font-semibold">
                         CRITICAL
                       </span>
                     ) : (
-                      <span className="bg-yellow-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                      <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold">
                         LOW
                       </span>
                     )}
@@ -159,7 +233,7 @@ const LowStockAlert = () => {
             ) : (
               <tr>
                 <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
-                  No low stock items in this category
+                  No items match the selected filters
                 </td>
               </tr>
             )}
@@ -167,10 +241,11 @@ const LowStockAlert = () => {
         </table>
       </div>
 
+
       <div className="mt-4 p-3 bg-orange-50 rounded border border-orange-200">
         <p className="text-sm text-orange-800">
           <span className="font-semibold">💡 Tip:</span> Please restock these items soon to avoid stockouts.
-          {selectedCategory && ` (Showing ${lowStockItems.length} of ${allLowStockItems.length} low stock items)`}
+          {(selectedCategory || selectedStatus) && ` (Showing ${lowStockItems.length} of ${allLowStockItems.length} low stock items)`}
         </p>
       </div>
     </div>
