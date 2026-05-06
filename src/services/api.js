@@ -54,6 +54,7 @@ const api = {
   addProduct: (product) => axiosInstance.post(`${API_URL}/products`, product),
   updateProduct: (id, product) => axiosInstance.put(`${API_URL}/products/${id}`, product),
   deleteProduct: (id) => axiosInstance.delete(`${API_URL}/products/${id}`),
+  getExpiringProducts: () => axiosInstance.get(`${API_URL}/products/expiring`),
   
   // Bills
   createBill: (billData) => axiosInstance.post(`${API_URL}/bills`, billData),

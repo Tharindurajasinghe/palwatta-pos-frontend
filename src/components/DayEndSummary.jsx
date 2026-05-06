@@ -5,18 +5,6 @@ import LoadingOverlay from '../components/LoadingOverlay';
 const DayEndSummary = ({ data, onLogout }) => {
   const [loading, setLoading] = useState(false);
 
-  const handleMakeMonthSummary = async () => {
-    try {
-      setLoading(true);
-      await api.createMonthlySummary();
-      alert('Monthly summary created successfully!');
-    } catch (error) {
-      alert(error.response?.data?.message || 'Error creating monthly summary');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSaveAndEnd = async () => {
     const confirm = window.confirm(
       'Are you sure you want to save and end?\nThis will logout the system.'

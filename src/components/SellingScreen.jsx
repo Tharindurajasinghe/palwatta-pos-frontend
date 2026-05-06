@@ -15,6 +15,7 @@ const SellingScreen = ({ onEndDay }) => {
   const [currentSales, setCurrentSales] = useState({ total: 0, profit: 0 });
   const [cash, setCash] = useState('');
   const [change, setChange] = useState(0);
+  const [expiringAlerts, setExpiringAlerts] = useState([]);
 
   // loading state: null = no overlay, string = show overlay with that message
   const [loadingMessage, setLoadingMessage] = useState(null);
@@ -27,12 +28,12 @@ const SellingScreen = ({ onEndDay }) => {
   const [productIndex, setProductIndex] = useState({});
   const [pageReady, setPageReady] = useState(false);
 
-  // On mount: load products and day summary together, show overlay until both done
+  // On mount: load products, day summary and expiring alerts together, show overlay until all done
   useEffect(() => {
     const initialLoad = async () => {
       setLoadingMessage('Loading...');
       try {
-        await Promise.all([loadProducts(), loadCurrentDaySummary()]);
+        await Promise.all([loadProducts(), loadCurrentDaySummary(), loadExpiringAlerts()]);
       } finally {
         setLoadingMessage(null);
         setPageReady(true);
@@ -72,6 +73,15 @@ const SellingScreen = ({ onEndDay }) => {
     const total = getTotal();
     setChange(cashNum >= total ? cashNum - total : 0);
   }, [cash, cart]);
+
+  const loadExpiringAlerts = async () => {
+    try {
+      const res = await api.getExpiringProducts();
+      setExpiringAlerts(res.data);
+    } catch (err) {
+      console.error('Error loading expiry alerts:', err);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -480,9 +490,75 @@ const SellingScreen = ({ onEndDay }) => {
         </div>
       </div>
 
-      {/* low stock alert */}
-      <div className="mb-6">
-        <LowStockAlert />
+      {/* Low stock alert (left) and expire warnings (right) — side by side */}
+      <div className="mb-6 grid grid-cols-2 gap-6 items-start">
+
+        {/* LEFT — Low stock alert, scrollable */}
+        <div className="h-96 overflow-y-auto">
+          <LowStockAlert />
+        </div>
+
+        {/* RIGHT — Expire date warnings, scrollable, same height */}
+        <div className="h-96 overflow-y-auto">
+          {expiringAlerts.length > 0 ? (
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4 h-full">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-2xl">⚠️</span>
+                <h2 className="text-lg font-bold text-red-700">Expiry Warning</h2>
+                <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-sm font-semibold ml-auto">
+                  {expiringAlerts.length} {expiringAlerts.length === 1 ? 'item' : 'items'}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-red-100">
+                      <th className="px-3 py-2 text-left">Product ID</th>
+                      <th className="px-3 py-2 text-left">Category</th>
+                      <th className="px-3 py-2 text-left">Product Name</th>
+                      <th className="px-3 py-2 text-left">Expire Date</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expiringAlerts.map((alert, i) => (
+                      <tr key={i} className={`border-b ${alert.isExpired ? 'bg-red-100' : 'bg-white'}`}>
+                        <td className="px-3 py-2 font-mono font-semibold">{alert.productId}</td>
+                        <td className="px-3 py-2">
+                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
+                            {alert.categoryName}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2">{alert.name}</td>
+                        <td className="px-3 py-2">
+                          {new Date(alert.expireDate).toLocaleDateString('en-GB', {
+                            day: '2-digit', month: 'short', year: 'numeric'
+                          })}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          {alert.isExpired ? (
+                            <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs font-semibold">EXPIRED</span>
+                          ) : (
+                            <span className="bg-orange-400 text-white px-2 py-0.5 rounded text-xs font-semibold">EXPIRING SOON</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow h-full flex items-center justify-center">
+              <div className="text-center">
+                <span className="text-4xl block mb-2">✅</span>
+                <p className="text-green-600 font-semibold">No Expiry Warnings</p>
+                <p className="text-gray-500 text-sm mt-1">All products are within safe dates</p>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
 
       <UptoNowBox show={showBills} bills={todayBills} onClose={() => setShowBills(false)} />

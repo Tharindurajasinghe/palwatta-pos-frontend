@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import ExpireDatePicker from './ExpireDatePicker';
 
 const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormData, handleSubmitUpdate }) => {
   const [categories, setCategories] = useState([]);
-
-  useEffect(() => {
-    if (showUpdateModal) {
-      loadCategories();
-    }
-  }, [showUpdateModal]);
 
   const loadCategories = async () => {
     try {
@@ -19,11 +14,17 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
     }
   };
 
+  useEffect(() => {
+    if (showUpdateModal) {
+      loadCategories();
+    }
+  }, [showUpdateModal]);
+
   if (!showUpdateModal) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Update Product - ID: {formData.productId}</h2>
           <button
@@ -88,7 +89,7 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-gray-700 mb-2">Selling Price (Rs.) *</label>
             <input
               type="number"
@@ -98,6 +99,14 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               min="0"
               required
+            />
+          </div>
+
+          {/* ── Expire Dates ── */}
+          <div className="mb-6">
+            <ExpireDatePicker
+              expireDates={formData.expireDates || []}
+              onChange={(dates) => setFormData(prev => ({ ...prev, expireDates: dates }))}
             />
           </div>
 
