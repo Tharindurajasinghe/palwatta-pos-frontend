@@ -7,6 +7,7 @@ const Summary = () => {
   const [viewType, setViewType] = useState('daily');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [dailySummary, setDailySummary] = useState(null);
+  const [showOnlyProducts1To11, setShowOnlyProducts1To11] = useState(false);
   
   useEffect(() => {
     if (viewType === 'daily') {
@@ -22,6 +23,13 @@ const Summary = () => {
       setDailySummary(null);
     }
   };
+
+  const filteredItems =
+  showOnlyProducts1To11 && dailySummary
+    ? dailySummary.items.filter(
+        (item) => item.productId >= 1 && item.productId <= 11
+      )
+    : dailySummary?.items || [];
 
   return (
     <div className="bg-white p-6 rounded-lg shadow">
@@ -48,7 +56,21 @@ const Summary = () => {
         >
           Monthly Summary
         </button>
+
+       <button
+       onClick={() => setShowOnlyProducts1To11(!showOnlyProducts1To11)}
+       className={`mb-4 px-4 py-2 rounded font-semibold ${
+      showOnlyProducts1To11
+      ? 'bg-blue-600 text-white'
+      : 'bg-gray-200 text-gray-700'
+        }`}
+      >
+        {showOnlyProducts1To11
+          ? 'Show All Products'
+          : 'Show Products ID 1-11 Only'}
+      </button>
       </div>
+
 
       {viewType === 'daily' ? (
         <div>
@@ -69,7 +91,7 @@ const Summary = () => {
                   Daily Summary - {new Date(dailySummary.date).toLocaleDateString()}
                 </h3>
                 
-                <SummaryTable items={dailySummary.items} />
+                <SummaryTable items={filteredItems} />
 
                 <div className="bg-green-50 p-6 rounded-lg">
                   <div className="grid grid-cols-2 gap-4">
