@@ -5,7 +5,8 @@ const Navbar = ({ activeScreen, setActiveScreen, onLogout }) => {
     { id: 'selling', label: 'Start Today', icon: '🛒' },
     { id: 'store', label: 'Store', icon: '📦' },
     { id: 'summary', label: 'Summary', icon: '📊' },
-    { id: 'checkbill', label: 'Check Bill', icon: '🧾' }
+    { id: 'checkbill', label: 'Check Bill', icon: '🧾' },
+    { id: 'productrange', label: 'Cone Summary', icon: '📋' }
   ];
 
   const handleLogout = () => {

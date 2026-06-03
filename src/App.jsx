@@ -6,6 +6,7 @@ import StoreManagement from './components/StoreManagement';
 import Summary from './components/Summary';
 import CheckBill from './components/CheckBill';
 import DayEndSummary from './components/DayEndSummary';
+import ProductRangeSummary from './components/ProductRangeSummary';
 import api from './services/api';
 
 function App() {
@@ -93,6 +94,7 @@ function App() {
         {activeScreen === 'summary' && <Summary />}
         {activeScreen === 'checkbill' && <CheckBill />}
         {activeScreen === 'dayend' && <DayEndSummary data={dayEndData} onLogout={handleLogout} />}
+         {activeScreen === 'productrange' && <ProductRangeSummary />}
       </div>
 
       {/* Password modal for Store and Summary */}
