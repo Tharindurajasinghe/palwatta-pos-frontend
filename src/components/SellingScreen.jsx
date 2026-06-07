@@ -48,7 +48,7 @@ const SellingScreen = ({ onEndDay }) => {
     const handleGlobalKeyDown = (e) => {
       if (e.ctrlKey && !e.shiftKey && !e.altKey && cart.length > 0) {
         e.preventDefault();
-        handlePrintSave();
+        handlePrintSaveDirect();
       }
       // Right Shift focuses Cash input
       if (e.code === 'ShiftRight') {
@@ -58,7 +58,7 @@ const SellingScreen = ({ onEndDay }) => {
     };
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [cart]);
+  }, [cart, cash]);
 
   useEffect(() => {
     if (selectedSuggestionIndex >= 0) {
@@ -227,6 +227,23 @@ const SellingScreen = ({ onEndDay }) => {
       alert(error.response?.data?.message || 'Error saving bill');
     }
   };
+
+  // Direct print — no confirmation, used by keyboard shortcut
+const handlePrintSaveDirect = async () => {
+  if (cart.length === 0) { alert('Cart is empty!'); return; }
+  if (!validatePrices()) return;
+  try {
+    const cashNum = parseFloat(cash) || 0;
+    const { response } = await saveBill(cashNum);
+    printBill(response.data);
+    alert('Bill saved successfully!');
+    setCart([]); setCash(''); setChange(0);
+    await loadCurrentDaySummary();
+    setTimeout(() => searchInputRef.current?.focus(), 100);
+  } catch (error) {
+    alert(error.response?.data?.message || 'Error saving bill');
+  }
+};
 
   const handleCashEnterSave = async () => {
     if (cart.length === 0) return;
