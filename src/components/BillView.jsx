@@ -1,82 +1,171 @@
 export const getBillHTML = (bill) => {
   const date = new Date(bill.date).toLocaleDateString('en-CA');
-  
+
   return `
   <html>
     <head>
       <meta charset="UTF-8">
       <title>Bill ${bill.billId}</title>
+
       <style>
         @media print {
           @page { size: 55mm auto; margin: 0; }
         }
-          
+
         body {
-          font-family: 'Courier New', monospace;
+          font-family: Arial, sans-serif;
           width: 160px;
           margin: 0 auto;
-          padding: 5px;
+          padding: 6px;
+          font-size: 10px;
+          color: #000;
+        }
+
+        .header {
+          text-align: center;
+          line-height: 1.2;
+        }
+
+        .header h2 {
+          font-size: 14px;
+          margin: 2px 0;
+          font-weight: bold;
+        }
+
+        .header p {
+          margin: 1px 0;
           font-size: 10px;
         }
-        .header { text-align: center; }
-        .separator { border-top: 1px dashed #000; margin: 8px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { font-size: 11px; padding: 4px 0; }
-        th { border-bottom: 1px solid #000; }
-        .right { text-align: right; }
+
+        .bill-info {
+          margin-top: 6px;
+          font-size: 10px;
+          line-height: 1.4;
+        }
+
+        .separator {
+          border-top: 1px dashed #000;
+          margin: 6px 0;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 10px;
+        }
+
+        th {
+          text-align: left;
+          border-bottom: 1px solid #000;
+          padding-bottom: 3px;
+          font-size: 10px;
+        }
+
+        td {
+          padding: 2px 0;
+          vertical-align: top;
+        }
+
+        .qty, .price, .total {
+          text-align: right;
+          white-space: nowrap;
+        }
+
+        .name {
+          width: 45%;
+        }
+
+        .qty { width: 15%; }
+        .price { width: 20%; }
+        .total { width: 20%; }
+
+        .totals {
+          font-size: 10px;
+          line-height: 1.6;
+        }
+
+        .totals-row {
+          display: flex;
+          justify-content: space-between;
+        }
+
         .sinhala-note {
           font-size: 9px;
           text-align: center;
           margin: 8px 0;
-          line-height: 1.4;
+          line-height: 1.3;
+        }
+
+        .footer {
+          text-align: center;
+          font-weight: bold;
+          margin-top: 6px;
         }
       </style>
     </head>
+
     <body>
+
       <div class="header">
         <h2>Jagath Store</h2>
         <p>Pasal Mawatha, Okkampitiya</p>
         <p>Tel: 071 6937755</p>
       </div>
 
-      <p><b>Bill ID – ${bill.billId}</b></p>
-      <p>${date.replace(/-/g, '.')} | ${bill.time}</p>
+      <div class="bill-info">
+        <div><b>Bill ID:</b> ${bill.billId}</div>
+        <div>${date.replace(/-/g, '.')} | ${bill.time}</div>
+      </div>
 
       <div class="separator"></div>
 
       <table>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Qty </th>
-            <th>Price </th>
-            <th class="right">Tot</th>
+            <th class="name">Item</th>
+            <th class="qty">Qty</th>
+            <th class="price">Price</th>
+            <th class="total">Total</th>
           </tr>
         </thead>
         <tbody>
           ${bill.items.map(i => `
             <tr>
-              <td>${i.name}</td>
-              <td>${i.quantity}</td>
-              <td>${i.price}</td>
-              <td class="right">${i.total}</td>
+              <td class="name">${i.name}</td>
+              <td class="qty">${i.quantity}</td>
+              <td class="price">${i.price}</td>
+              <td class="total">${i.total}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>
 
       <div class="separator"></div>
-      <p><b>Sub Total: ${bill.totalAmount.toFixed(2)}/=</b></p>
-      <p><b>Cash Paid: ${bill.cash.toFixed(2)}/=</b></p>
-      <p><b>Change: ${bill.change.toFixed(2)}/=</b></p>
 
-      <div class="sinhala-note">
-        <p>යොගට්/ අයිස්ක්‍රීම් නෑවත භාරගනු නොලෑබේ.</b></p>
-        <p>භාණ්ඩ මාරු කිරීමට </b>></p>
-        <p>බිල රෑගෙන ඒම අනිවාර්ය වේ.</b></p>
+      <div class="totals">
+        <div class="totals-row">
+          <span><b>Sub Total</b></span>
+          <span><b>${bill.totalAmount.toFixed(2)}/=</b></span>
+        </div>
+        <div class="totals-row">
+          <span>Cash Paid</span>
+          <span>${bill.cash.toFixed(2)}/=</span>
+        </div>
+        <div class="totals-row">
+          <span>Change</span>
+          <span>${bill.change.toFixed(2)}/=</span>
+        </div>
       </div>
 
-      <p style="text-align:center"><b>Thank You..!</b></p>
+      <div class="separator"></div>
+
+      <div class="sinhala-note">
+        කිරි හා ශීත කළ නිශ්පාදන නැවත භාරගනු හෝ මාරු කරනු නොලැබේ.
+      </div>
+
+      <div class="footer">
+        Thank You!
+      </div>
 
       <script>
         window.onload = () => {
@@ -84,6 +173,7 @@ export const getBillHTML = (bill) => {
           window.onafterprint = () => window.close();
         };
       </script>
+
     </body>
   </html>
   `;
