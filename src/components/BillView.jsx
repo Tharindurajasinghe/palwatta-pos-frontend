@@ -90,10 +90,11 @@ export const getBillHTML = (bill) => {
         }
 
         .sinhala-note {
-          font-size: 9px;
+          font-size: 12px;
           text-align: center;
           margin: 8px 0;
           line-height: 1.3;
+          font-weight: bold;
         }
 
         .footer {
