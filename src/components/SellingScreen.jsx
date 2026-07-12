@@ -5,6 +5,8 @@ import UptoNowBox from './UptoNowBox';
 import LowStockAlert from './LowStockAlert';
 import LoadingOverlay from '../components/LoadingOverlay';
 import AddToCustomerBillModal from './AddToCustomerBillModal';
+import MakeOrderModal from './MakeOrderModal';                   // NEW
+import OrderAlert from './OrderAlert'; 
 
 
 const SellingScreen = ({ onEndDay }) => {
@@ -18,6 +20,8 @@ const SellingScreen = ({ onEndDay }) => {
   const [change, setChange] = useState(0);
   const [expiringAlerts, setExpiringAlerts] = useState([]);
   const [showCustomerBillModal, setShowCustomerBillModal] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);                 // NEW
+  const [orderRefreshKey, setOrderRefreshKey] = useState(0); 
 
   // loading state: null = no overlay, string = show overlay with that message
   const [loadingMessage, setLoadingMessage] = useState(null);
@@ -295,6 +299,45 @@ const handlePrintSaveDirect = async () => {
     }
   };
 
+  // NEW: open the order window from the cart
+  const handleOpenOrder = () => {
+    if (cart.length === 0) { alert('Cart is empty!'); return; }
+    if (!validatePrices()) return;
+    setShowOrderModal(true);
+  };
+
+  // NEW: save the current cart as an order (no bill, no stock change)
+  const handleMakeOrder = async (orderInfo) => {
+    try {
+      const orderData = {
+        ...orderInfo,
+        items: buildBillItems()
+      };
+      const response = await api.createOrder(orderData);
+
+      setShowOrderModal(false);
+
+      const printConfirm = window.confirm(
+        `Order ${response.data.orderId} created for ${orderInfo.customerName}!\n\nDo you want to print the order?`
+      );
+      if (printConfirm) {
+        const w = window.open('', '', 'width=400,height=600');
+        // getOrderHTML is imported lazily to keep this file's imports minimal
+        import('./OrderView').then(({ getOrderHTML }) => {
+          w.document.write(getOrderHTML(response.data));
+          w.document.close();
+        });
+      }
+
+      setCart([]); setCash(''); setChange(0);
+      setOrderRefreshKey(k => k + 1);   // refresh the order alert box
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error creating order');
+    }
+  };
+
+
 
   const handleCheckUpToNow = async () => {
     setLoadingMessage('Loading bills...');
@@ -542,10 +585,22 @@ const handlePrintSaveDirect = async () => {
                 >
                   👥 Add to Customer Bill
                 </button>
+                <button
+                  onClick={handleOpenOrder}
+                  className="w-full bg-indigo-600 text-white py-3 rounded hover:bg-indigo-700 font-semibold mt-2"
+                >
+                  📦 Add To Order
+                </button>
               </div>
             </>
           )}
         </div>
+      </div>
+
+      {/* NEW: Order alerts — under Add Items, above Low Stock Alert */}
+      <div className="mb-6 grid grid-cols-2 gap-6 items-start">
+        <OrderAlert refreshKey={orderRefreshKey} />
+        <div />
       </div>
 
       {/* Low stock alert (left) and expire warnings (right) — side by side */}
@@ -626,6 +681,13 @@ const handlePrintSaveDirect = async () => {
         billTotal={getTotal()}
         onConfirm={handleAddToCustomerBill}
         onClose={() => setShowCustomerBillModal(false)}
+      />
+
+      <MakeOrderModal
+        show={showOrderModal}
+        orderTotal={getTotal()}
+        onConfirm={handleMakeOrder}
+        onClose={() => setShowOrderModal(false)}
       />
     </div>
   );

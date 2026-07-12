@@ -94,6 +94,13 @@ const api = {
   getCustomerBills: (id) => axiosInstance.get(`/customers/${id}/bills`),
   getCustomerPayments: (id) => axiosInstance.get(`/customers/${id}/payments`),
   recordCustomerPayment: (id, data) => axiosInstance.post(`/customers/${id}/payments`, data),
+
+  // Orders (NEW)
+  getOrders: () => axiosInstance.get('/orders'),
+  getPendingOrders: () => axiosInstance.get('/orders/pending'),
+  createOrder: (data) => axiosInstance.post('/orders', data),
+  completeOrder: (id, data) => axiosInstance.post(`/orders/${id}/complete`, data),
+  deleteOrder: (id) => axiosInstance.delete(`/orders/${id}`),
   };
 
 export default api;
