@@ -173,6 +173,27 @@ const CheckBill = () => {
                     <div>
                       <p className="font-semibold">Bill #{bill.billId}</p>
                       <p className="text-sm text-gray-600">{bill.time}</p>
+
+                      {/* NEW: customer (credit) bill label */}
+                      {bill.customerId && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-0.5 rounded">
+                            👥 Added to Customer
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {bill.customerName}
+                          </span>
+                          {bill.paymentStatus === 'pending' ? (
+                            <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-0.5 rounded">
+                              Pending
+                            </span>
+                          ) : (
+                            <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded">
+                              Paid
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="font-bold text-green-600">
                       Rs. {bill.totalAmount.toFixed(2)}
@@ -203,6 +224,34 @@ const CheckBill = () => {
                   {new Date(selectedBill.date).toLocaleDateString()}
                 </p>
               </div>
+
+              {/* NEW: customer (credit) bill info */}
+              {selectedBill.customerId && (
+                <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded">
+                  <div className="flex justify-between items-center">
+                    <span className="inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-2 py-1 rounded">
+                      👥 Added to Customer
+                    </span>
+                    {selectedBill.paymentStatus === 'pending' ? (
+                      <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
+                        Pending
+                      </span>
+                    ) : (
+                      <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded">
+                        Paid
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-sm text-gray-700">
+                    <span className="font-semibold">Customer:</span> {selectedBill.customerName} ({selectedBill.customerId})
+                  </p>
+                  {selectedBill.paidAmount > 0 && selectedBill.paymentStatus === 'pending' && (
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold">Paid so far:</span> Rs. {selectedBill.paidAmount.toFixed(2)} of Rs. {selectedBill.totalAmount.toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="mb-6">

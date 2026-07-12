@@ -4,6 +4,7 @@ import api from '../services/api';
 import UptoNowBox from './UptoNowBox';
 import LowStockAlert from './LowStockAlert';
 import LoadingOverlay from '../components/LoadingOverlay';
+import AddToCustomerBillModal from './AddToCustomerBillModal';
 
 
 const SellingScreen = ({ onEndDay }) => {
@@ -16,6 +17,7 @@ const SellingScreen = ({ onEndDay }) => {
   const [cash, setCash] = useState('');
   const [change, setChange] = useState(0);
   const [expiringAlerts, setExpiringAlerts] = useState([]);
+  const [showCustomerBillModal, setShowCustomerBillModal] = useState(false);
 
   // loading state: null = no overlay, string = show overlay with that message
   const [loadingMessage, setLoadingMessage] = useState(null);
@@ -261,6 +263,39 @@ const handlePrintSaveDirect = async () => {
     }
   };
 
+  // NEW: open the customer modal from the cart
+  const handleOpenCustomerBill = () => {
+    if (cart.length === 0) { alert('Cart is empty!'); return; }
+    if (!validatePrices()) return;
+    setShowCustomerBillModal(true);
+  };
+
+  // NEW: save the current cart as a credit bill for the selected customer
+  const handleAddToCustomerBill = async (customer) => {
+    try {
+      const billData = {
+        items: buildBillItems(),
+        cash: 0,
+        customerId: customer.customerId
+      };
+      const response = await api.createBill(billData);
+
+      setShowCustomerBillModal(false);
+
+      const printConfirm = window.confirm(
+        `Bill added to ${customer.name}!\n\nDo you want to print the bill?`
+      );
+      if (printConfirm) printBill(response.data);
+
+      setCart([]); setCash(''); setChange(0);
+      await loadCurrentDaySummary();
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error adding bill to customer');
+    }
+  };
+
+
   const handleCheckUpToNow = async () => {
     setLoadingMessage('Loading bills...');
     try {
@@ -501,6 +536,12 @@ const handlePrintSaveDirect = async () => {
                 >
                   Print Bill / Save Bill
                 </button>
+                <button
+                  onClick={handleOpenCustomerBill}
+                  className="w-full bg-purple-600 text-white py-3 rounded hover:bg-purple-700 font-semibold mt-2"
+                >
+                  👥 Add to Customer Bill
+                </button>
               </div>
             </>
           )}
@@ -579,6 +620,13 @@ const handlePrintSaveDirect = async () => {
       </div>
 
       <UptoNowBox show={showBills} bills={todayBills} onClose={() => setShowBills(false)} />
+        {/* NEW */}
+      <AddToCustomerBillModal
+        show={showCustomerBillModal}
+        billTotal={getTotal()}
+        onConfirm={handleAddToCustomerBill}
+        onClose={() => setShowCustomerBillModal(false)}
+      />
     </div>
   );
 };

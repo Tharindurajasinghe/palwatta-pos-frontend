@@ -116,6 +116,10 @@ export const getBillHTML = (bill) => {
       <div class="bill-info">
         <div><b>Bill ID:</b> ${bill.billId}</div>
         <div>${date.replace(/-/g, '.')} | ${bill.time}</div>
+        ${bill.customerId ? `
+          <div><b>Customer:</b> ${bill.customerName}</div>
+          <div><b>*** CREDIT BILL - NOT PAID ***</b></div>
+        ` : ''}
       </div>
 
       <div class="separator"></div>

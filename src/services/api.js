@@ -76,12 +76,24 @@ const api = {
   getAvailableDates: () => axiosInstance.get(`${API_URL}/summary/available-dates`),
 
   // Categories
-getCategories: () => axiosInstance.get('/categories'),
-getCategory: (id) => axiosInstance.get(`/categories/${id}`),
-addCategory: (category) => axiosInstance.post('/categories', category),
-updateCategory: (id, category) => axiosInstance.put(`/categories/${id}`, category),
-deleteCategory: (id) => axiosInstance.delete(`/categories/${id}`),
-getCategoryProducts: (id) => axiosInstance.get(`/categories/${id}/products`),
-};
+  getCategories: () => axiosInstance.get('/categories'),
+  getCategory: (id) => axiosInstance.get(`/categories/${id}`),
+  addCategory: (category) => axiosInstance.post('/categories', category),
+  updateCategory: (id, category) => axiosInstance.put(`/categories/${id}`, category),
+  deleteCategory: (id) => axiosInstance.delete(`/categories/${id}`),
+  getCategoryProducts: (id) => axiosInstance.get(`/categories/${id}/products`),
+
+
+  // Customers (NEW)
+  getCustomers: () => axiosInstance.get('/customers'),
+  searchCustomers: (query) => axiosInstance.get(`/customers/search?query=${encodeURIComponent(query)}`),
+  getCustomer: (id) => axiosInstance.get(`/customers/${id}`),
+  addCustomer: (data) => axiosInstance.post('/customers', data),
+  updateCustomer: (id, data) => axiosInstance.put(`/customers/${id}`, data),
+  deleteCustomer: (id) => axiosInstance.delete(`/customers/${id}`),
+  getCustomerBills: (id) => axiosInstance.get(`/customers/${id}/bills`),
+  getCustomerPayments: (id) => axiosInstance.get(`/customers/${id}/payments`),
+  recordCustomerPayment: (id, data) => axiosInstance.post(`/customers/${id}/payments`, data),
+  };
 
 export default api;
