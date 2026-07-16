@@ -146,7 +146,8 @@ const StoreManagement = () => {
       stock: product.stock,
       buyingPrice: product.buyingPrice,
       sellingPrice: product.sellingPrice,
-       expireDates: (product.expireDates || []).map(d => new Date(d).toISOString().split('T')[0])
+       expireDates: (product.expireDates || []).map(d => new Date(d).toISOString().split('T')[0]),
+       stockHistory: product.stockHistory || []   // NEW
     });
     setShowUpdateModal(true);
   };

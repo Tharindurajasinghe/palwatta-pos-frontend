@@ -125,6 +125,38 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
               Update Product
             </button>
           </div>
+          {/* NEW: last 5 stock updates */}
+          {formData.stockHistory && formData.stockHistory.length > 0 && (
+            <div className="mt-6 pt-4 border-t">
+              <h3 className="text-sm font-bold text-gray-700 mb-2">
+                📋 Recent Stock Updates (last 5)
+              </h3>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
+                {formData.stockHistory.map((h, i) => {
+                  const up = h.change > 0;
+                  const when = new Date(h.changedAt).toLocaleString('en-GB', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', hour12: true
+                  });
+                  return (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between text-xs bg-gray-50 border rounded px-3 py-2"
+                    >
+                      <span className="text-gray-600">{when}</span>
+                      <span className="text-gray-700">
+                        {h.oldStock} → <span className="font-semibold">{h.newStock}</span>
+                      </span>
+                      <span className={`font-bold ${up ? 'text-green-600' : 'text-red-600'}`}>
+                        {up ? '+' : ''}{h.change}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        
         </form>
       </div>
     </div>
