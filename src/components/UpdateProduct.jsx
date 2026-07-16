@@ -109,22 +109,6 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
               onChange={(dates) => setFormData(prev => ({ ...prev, expireDates: dates }))}
             />
           </div>
-
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setShowUpdateModal(false)}
-              className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-            >
-              Update Product
-            </button>
-          </div>
           {/* NEW: last 5 stock updates */}
           {formData.stockHistory && formData.stockHistory.length > 0 && (
             <div className="mt-6 pt-4 border-t">
@@ -156,7 +140,22 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
               </div>
             </div>
           )}
-        
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowUpdateModal(false)}
+              className="flex-1 bg-gray-500 text-white py-2 rounded hover:bg-gray-600"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            >
+              Update Product
+            </button>
+          </div>      
         </form>
       </div>
     </div>
