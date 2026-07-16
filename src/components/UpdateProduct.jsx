@@ -141,7 +141,7 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-6">
             <button
               type="button"
               onClick={() => setShowUpdateModal(false)}
