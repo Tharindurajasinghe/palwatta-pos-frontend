@@ -35,11 +35,18 @@ const UptoNowBox = ({ show, bills, onClose }) => {
                     Rs. {bill.totalAmount.toFixed(2)}
                   </td>
                   <td className="px-4 py-2 text-center">
-                    {isEdited(bill) && (
-                      <span className="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-1 rounded">
-                        Edited
-                      </span>
-                    )}
+                    <div className="flex items-center justify-center gap-1 flex-wrap">
+                      {bill.customerId && (
+                        <span className="inline-block bg-red-100 text-red-700 text-xs font-semibold px-2 py-1 rounded">
+                          Credit
+                        </span>
+                      )}
+                      {isEdited(bill) && (
+                        <span className="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-1 rounded">
+                          Edited
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
