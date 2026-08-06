@@ -26,7 +26,8 @@ const StoreManagement = () => {
     categoryId: '',
     stock: '',
     buyingPrice: '',
-    sellingPrice: ''
+    sellingPrice: '',
+    barcode: ''
   });
 
   useEffect(() => {
@@ -97,7 +98,8 @@ const StoreManagement = () => {
         stock: '',
         buyingPrice: '',
         sellingPrice: '',
-        expireDates: []
+        expireDates: [],
+         barcode: '' 
       });
       setShowAddModal(true);
     } catch (error) {
@@ -124,7 +126,8 @@ const StoreManagement = () => {
         stock: parseInt(formData.stock),
         buyingPrice: parseFloat(formData.buyingPrice),
         sellingPrice: parseFloat(formData.sellingPrice),
-          expireDates: formData.expireDates || []   
+          expireDates: formData.expireDates || [],
+          barcode: formData.barcode || ''    
       });
 
       alert('Product added successfully!');
@@ -147,7 +150,8 @@ const StoreManagement = () => {
       buyingPrice: product.buyingPrice,
       sellingPrice: product.sellingPrice,
        expireDates: (product.expireDates || []).map(d => new Date(d).toISOString().split('T')[0]),
-       stockHistory: product.stockHistory || []   // NEW
+       stockHistory: product.stockHistory || [],   // NEW
+       barcode: product.barcode || ''
     });
     setShowUpdateModal(true);
   };
@@ -163,7 +167,8 @@ const StoreManagement = () => {
         stock: parseInt(formData.stock),
         buyingPrice: parseFloat(formData.buyingPrice),
         sellingPrice: parseFloat(formData.sellingPrice),
-        expireDates: formData.expireDates || []
+        expireDates: formData.expireDates || [],
+        barcode: formData.barcode || '' 
       });
 
       alert('Product updated successfully!');

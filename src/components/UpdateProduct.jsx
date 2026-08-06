@@ -65,6 +65,18 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
           </div>
 
           <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Barcode (optional)</label>
+            <input
+              type="text"
+              value={formData.barcode || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
+              placeholder="Scan or type barcode..."
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+
+
+          <div className="mb-4">
             <label className="block text-gray-700 mb-2">Available Stock *</label>
             <input
               type="number"

@@ -22,6 +22,7 @@ const SellingScreen = ({ onEndDay }) => {
   const [showCustomerBillModal, setShowCustomerBillModal] = useState(false);
   const [showOrderModal, setShowOrderModal] = useState(false);                 // NEW
   const [orderRefreshKey, setOrderRefreshKey] = useState(0); 
+  
 
   // loading state: null = no overlay, string = show overlay with that message
   const [loadingMessage, setLoadingMessage] = useState(null);
@@ -32,7 +33,9 @@ const SellingScreen = ({ onEndDay }) => {
   const cashInputRef = useRef(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
   const [productIndex, setProductIndex] = useState({});
+  const [barcodeIndex, setBarcodeIndex] = useState({}); 
   const [pageReady, setPageReady] = useState(false);
+  
 
   // On mount: load products, day summary and expiring alerts together, show overlay until all done
   useEffect(() => {
@@ -93,8 +96,13 @@ const SellingScreen = ({ onEndDay }) => {
     try {
       const res = await api.getProducts();
       const index = {};
-      res.data.forEach(p => { index[p.productId] = p; });
+      const bcIndex = {};   // NEW
+      res.data.forEach(p => {
+        index[p.productId] = p;
+        if (p.barcode) bcIndex[p.barcode] = p;   // NEW
+      });
       setProductIndex(index);
+      setBarcodeIndex(bcIndex);   // NEW
     } catch {
       alert('Products failed to load');
     }
@@ -116,6 +124,29 @@ const SellingScreen = ({ onEndDay }) => {
     addToCart(product);
   };
 
+  // NEW: try to add a scanned barcode. Checks the local index first (instant),
+  // falls back to the server (covers a product added after this page loaded).
+  const addByBarcode = async (code) => {
+    const local = barcodeIndex[code];
+    if (local) {
+      addToCart(local, 1, true);
+      return;
+    }
+    try {
+      const response = await api.getProductByBarcode(code);
+      if (response.data) {
+        addToCart(response.data, 1, true);
+        // keep the index up to date for the rest of this session
+        setBarcodeIndex(prev => ({ ...prev, [code]: response.data }));
+        return;
+      }
+    } catch {
+      // falls through to the alert below
+    }
+    alert('No product found for this barcode');
+    setSearchQuery('');
+  };
+
   const handleSearch = async (value) => {
     setSearchQuery(value);
     setSelectedSuggestionIndex(-1);
@@ -134,7 +165,7 @@ const SellingScreen = ({ onEndDay }) => {
     }, 300);
   };
 
-  const addToCart = (product, quantity = 1) => {
+ const addToCart = (product, quantity = 1, focusSearchAfter = false) => {
     const existing = cart.find(item => item.productId === product.productId);
     if (existing) {
       if (existing.quantity + quantity > product.stock) { alert(`Insufficient stock! Available: ${product.stock}`); return; }
@@ -144,10 +175,17 @@ const SellingScreen = ({ onEndDay }) => {
       setCart([...cart, { ...product, quantity, customPrice: product.sellingPrice }]);
     }
     setSearchQuery(''); setSuggestions([]);
-    setTimeout(() => {
-      const qtyInput = document.getElementById(`qty-${product.productId}`);
-      qtyInput?.focus(); qtyInput?.select();
-    }, 100);
+
+    // NEW: barcode scans keep focus on the search field, ready for the next scan.
+    // Manual add (search/click) keeps the existing behaviour — focus the qty field.
+    if (focusSearchAfter) {
+      setTimeout(() => searchInputRef.current?.focus(), 100);
+    } else {
+      setTimeout(() => {
+        const qtyInput = document.getElementById(`qty-${product.productId}`);
+        qtyInput?.focus(); qtyInput?.select();
+      }, 100);
+    }
   };
 
   const updateQuantity = (productId, quantity) => {
@@ -406,10 +444,16 @@ const handlePrintSaveDirect = async () => {
                   if (searchTimeoutRef.current) {
                     clearTimeout(searchTimeoutRef.current);
                   }
+                  const trimmed = searchQuery.trim();
 
                   // 1. If product ID typed → add from local index (FAST)
                   if (/^\d{1,3}$/.test(searchQuery)) {
                     addByProductIdLocal(searchQuery);
+                    return;
+                  }
+
+                  if (trimmed.length > 3 && barcodeIndex[trimmed]) {
+                    addByBarcode(trimmed);
                     return;
                   }
 
@@ -422,6 +466,10 @@ const handlePrintSaveDirect = async () => {
                   // 3. Fallback → first suggestion
                   if (suggestions.length > 0) {
                     addToCart(suggestions[0]);
+                    return;
+                  }
+                  if (trimmed.length > 3) {
+                    addByBarcode(trimmed);
                   }
                 }
               }}

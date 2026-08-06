@@ -49,6 +49,7 @@ const api = {
   // Products
   getProducts: () => axiosInstance.get(`${API_URL}/products`),
   getProduct: (id) => axiosInstance.get(`${API_URL}/products/${id}`),
+  getProductByBarcode: (code) => axiosInstance.get(`${API_URL}/products/barcode/${encodeURIComponent(code)}`),
   searchProducts: (query) => axiosInstance.get(`${API_URL}/products/search?query=${query}`),
   getNextProductId: () => axiosInstance.get(`${API_URL}/products/next-id`),
   addProduct: (product) => axiosInstance.post(`${API_URL}/products`, product),
