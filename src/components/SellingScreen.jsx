@@ -53,6 +53,7 @@ const SellingScreen = ({ onEndDay }) => {
   }, []);
 
   // Global keydown: Ctrl to print/save, Right Shift to focus cash
+  // Global keydown: Ctrl to print/save, Right Shift to focus cash
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       if (e.ctrlKey && !e.shiftKey && !e.altKey && cart.length > 0) {
@@ -68,6 +69,28 @@ const SellingScreen = ({ onEndDay }) => {
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, [cart, cash]);
+
+  // NEW: keep the search field ready for scanning at all times.
+  // If nothing else on the page currently has focus (no qty/price/cash field,
+  // no modal input, no button), send focus back to the search box.
+  useEffect(() => {
+    const refocusSearch = () => {
+      setTimeout(() => {
+        const active = document.activeElement;
+        const nothingFocused = !active || active === document.body;
+        if (nothingFocused && pageReady) {
+          searchInputRef.current?.focus();
+        }
+      }, 150);
+    };
+
+    document.addEventListener('click', refocusSearch);
+    document.addEventListener('focusout', refocusSearch);
+    return () => {
+      document.removeEventListener('click', refocusSearch);
+      document.removeEventListener('focusout', refocusSearch);
+    };
+  }, [pageReady]);
 
   useEffect(() => {
     if (selectedSuggestionIndex >= 0) {
