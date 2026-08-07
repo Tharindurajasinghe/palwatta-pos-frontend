@@ -12,7 +12,7 @@ export const getBillHTML = (bill) => {
           @page { size: 80mm auto; margin: 0; }
         }
 
-        body {
+        body { 
           font-family: Arial, sans-serif;
           width: 280px;
           margin: 0 auto;
