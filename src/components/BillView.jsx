@@ -9,15 +9,15 @@ export const getBillHTML = (bill) => {
 
       <style>
         @media print {
-          @page { size: 55mm auto; margin: 0; }
+          @page { size: 80mm auto; margin: 0; }
         }
 
         body {
           font-family: Arial, sans-serif;
-          width: 160px;
+          width: 280px;
           margin: 0 auto;
-          padding: 6px;
-          font-size: 10px;
+          padding: 10px;
+          font-size: 14px;
           color: #000;
         }
 
@@ -27,42 +27,42 @@ export const getBillHTML = (bill) => {
         }
 
         .header h2 {
-          font-size: 14px;
-          margin: 2px 0;
+          font-size: 20px;
+          margin: 3px 0;
           font-weight: bold;
         }
 
         .header p {
-          margin: 1px 0;
-          font-size: 10px;
+          margin: 2px 0;
+          font-size: 14px;
         }
 
         .bill-info {
-          margin-top: 6px;
-          font-size: 10px;
-          line-height: 1.4;
+          margin-top: 8px;
+          font-size: 14px;
+          line-height: 1.5;
         }
 
         .separator {
           border-top: 1px dashed #000;
-          margin: 6px 0;
+          margin: 8px 0;
         }
 
         table {
           width: 100%;
           border-collapse: collapse;
-          font-size: 10px;
+          font-size: 14px;
         }
 
         th {
           text-align: left;
           border-bottom: 1px solid #000;
-          padding-bottom: 3px;
-          font-size: 10px;
+          padding-bottom: 4px;
+          font-size: 14px;
         }
 
         td {
-          padding: 2px 0;
+          padding: 3px 0;
           vertical-align: top;
         }
 
@@ -80,8 +80,8 @@ export const getBillHTML = (bill) => {
         .total { width: 20%; }
 
         .totals {
-          font-size: 10px;
-          line-height: 1.6;
+          font-size: 14px;
+          line-height: 1.7;
         }
 
         .totals-row {
@@ -90,17 +90,18 @@ export const getBillHTML = (bill) => {
         }
 
         .sinhala-note {
-          font-size: 12px;
+          font-size: 16px;
           text-align: center;
-          margin: 8px 0;
-          line-height: 1.3;
+          margin: 10px 0;
+          line-height: 1.4;
           font-weight: bold;
         }
 
         .footer {
           text-align: center;
           font-weight: bold;
-          margin-top: 6px;
+          margin-top: 8px;
+          font-size: 15px;
         }
       </style>
     </head>

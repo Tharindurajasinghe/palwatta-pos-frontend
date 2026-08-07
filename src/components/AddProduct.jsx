@@ -9,7 +9,7 @@ const AddProduct = ({ showAddModal, setShowAddModal, formData, setFormData, hand
     if (showAddModal) {
       loadCategories();
       // Reset expire dates each time modal opens for a fresh product
-      setFormData(prev => ({ ...prev, expireDates: [] }));
+      setFormData(prev => ({ ...prev, expireDates: [],barcode: '' }));
     }
   }, [showAddModal]);
 
@@ -74,6 +74,17 @@ const AddProduct = ({ showAddModal, setShowAddModal, formData, setFormData, hand
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
               required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Barcode (optional)</label>
+            <input
+              type="text"
+              value={formData.barcode || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, barcode: e.target.value }))}
+              placeholder="Scan or type barcode..."
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
