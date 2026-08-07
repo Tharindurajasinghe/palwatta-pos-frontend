@@ -3,6 +3,7 @@ const SummaryTable = ({ items }) => (
     <table className="w-full">
       <thead className="bg-gray-100">
         <tr>
+          <th className="px-4 py-2 text-left">No.</th>
           <th className="px-4 py-2 text-left">Item ID</th>
           <th className="px-4 py-2 text-left">Item Name</th>
           <th className="px-4 py-2 text-right">Sold Quantity</th>
@@ -12,8 +13,9 @@ const SummaryTable = ({ items }) => (
       </thead>
       <tbody>
         {items.sort((a, b) => a.productId.localeCompare(b.productId))
-        .map(item => (
+        .map((item , index) => (
           <tr key={item.productId} className="border-b">
+             <td className="px-4 py-2">{index + 1}</td>
             <td className="px-4 py-2">{item.productId}</td>
             <td className="px-4 py-2">{item.name}</td>
             <td className="px-4 py-2 text-right">{item.soldQuantity}</td>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { getBillHTML } from './BillView'; 
 
 const CheckBill = () => {
   const [billId, setBillId] = useState('');
@@ -86,6 +87,13 @@ const CheckBill = () => {
     } finally {
       setLoadingMessage(null);
     }
+  };
+
+  const handleReprintBill = () => {
+    if (!selectedBill) return;
+    const w = window.open('', '', 'width=400,height=600');
+    w.document.write(getBillHTML(selectedBill));
+    w.document.close();
   };
 
   const handleDeleteBill = async () => {
@@ -305,6 +313,13 @@ const CheckBill = () => {
                 </p>
               </div>
             </div>
+
+            <button
+              onClick={handleReprintBill}
+              className="w-full mb-2 mt-4 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            >
+              🖨 Reprint Bill
+            </button>
 
             <button
               onClick={handleDeleteBill}
