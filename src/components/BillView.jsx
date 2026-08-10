@@ -110,6 +110,7 @@ export const getBillHTML = (bill) => {
 
       <div class="header">
         <h2>Jagath Store</h2>
+        <spam>Palwatta Dairy</spam>
         <p>Pasal Mawatha, Okkampitiya</p>
         <p>Tel: 071 6937755</p>
       </div>

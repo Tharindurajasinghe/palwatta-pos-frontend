@@ -268,7 +268,8 @@ const SellingScreen = ({ onEndDay }) => {
     return {
       productId: item.productId,
       quantity: item.quantity,
-      customPrice: (!isNaN(price) && price > 0) ? price : item.sellingPrice
+      customPrice: (!isNaN(price) && price > 0) ? price : item.sellingPrice,
+      isWholesale: !!item.isWholesale
     };
   });
 

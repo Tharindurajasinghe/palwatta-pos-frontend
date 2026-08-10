@@ -3,6 +3,15 @@ import api from '../services/api';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { getBillHTML } from './BillView'; 
 
+// NEW: does at least one item in this bill have a manually edited price (not a wholesale sale)?
+const hasEditedPrice = (bill) =>
+  (bill.items || []).some(item => !item.isWholesale && item.price !== item.originalSellingPrice);
+
+// NEW: was at least one item in this bill sold at whole sale price?
+const hasWholesaleItem = (bill) =>
+  (bill.items || []).some(item => item.isWholesale);
+
+
 const CheckBill = () => {
   const [billId, setBillId] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
@@ -202,6 +211,22 @@ const CheckBill = () => {
                           )}
                         </div>
                       )}
+
+                      {/* NEW: edited-price / whole-sale labels */}
+                      {(hasEditedPrice(bill) || hasWholesaleItem(bill)) && (
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          {hasEditedPrice(bill) && (
+                            <span className="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-0.5 rounded">
+                              ✏️ Edited Price
+                            </span>
+                          )}
+                          {hasWholesaleItem(bill) && (
+                            <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-0.5 rounded">
+                              📦 Whole Sale Bill
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="font-bold text-green-600">
                       Rs. {bill.totalAmount.toFixed(2)}
@@ -257,6 +282,22 @@ const CheckBill = () => {
                     <p className="text-sm text-gray-700">
                       <span className="font-semibold">Paid so far:</span> Rs. {selectedBill.paidAmount.toFixed(2)} of Rs. {selectedBill.totalAmount.toFixed(2)}
                     </p>
+                  )}
+                </div>
+              )}
+
+              {/* NEW: edited-price / whole-sale labels */}
+              {(hasEditedPrice(selectedBill) || hasWholesaleItem(selectedBill)) && (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {hasEditedPrice(selectedBill) && (
+                    <span className="inline-block bg-orange-100 text-orange-700 text-xs font-semibold px-2 py-1 rounded">
+                      ✏️ Edited Price
+                    </span>
+                  )}
+                  {hasWholesaleItem(selectedBill) && (
+                    <span className="inline-block bg-indigo-100 text-indigo-700 text-xs font-semibold px-2 py-1 rounded">
+                      📦 Whole Sale Bill
+                    </span>
                   )}
                 </div>
               )}
