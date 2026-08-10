@@ -195,7 +195,7 @@ const SellingScreen = ({ onEndDay }) => {
       setCart(cart.map(item => item.productId === product.productId ? { ...item, quantity: item.quantity + quantity } : item));
     } else {
       if (quantity > product.stock) { alert(`Insufficient stock! Available: ${product.stock}`); return; }
-      setCart([...cart, { ...product, quantity, customPrice: product.sellingPrice }]);
+      setCart([...cart, { ...product, quantity, customPrice: product.sellingPrice,isWholesale: false }]);
     }
     setSearchQuery(''); setSuggestions([]);
 
@@ -222,6 +222,16 @@ const SellingScreen = ({ onEndDay }) => {
     setCart(cart.map(item =>
       item.productId === productId ? { ...item, customPrice: priceStr } : item
     ));
+  };
+
+  const toggleWholesale = (productId, checked) => {
+    setCart(cart.map(item => {
+      if (item.productId !== productId) return item;
+      if (checked) {
+        return { ...item, isWholesale: true, customPrice: item.wholesalePrice };
+      }
+      return { ...item, isWholesale: false, customPrice: item.sellingPrice };
+    }));
   };
 
   const removeFromCart = (productId) => { setCart(cart.filter(item => item.productId !== productId)); };
@@ -611,6 +621,17 @@ const handlePrintSaveDirect = async () => {
                     {/* Warning when price is modified */}
                     {!isNaN(parseFloat(item.customPrice)) && parseFloat(item.customPrice) !== item.sellingPrice && (
                       <p className="text-xs text-orange-600 mt-1">⚠ Price modified from original Rs. {item.sellingPrice.toFixed(2)}</p>
+                    )}
+                    {item.wholesalePrice > 0 && (
+                      <label className="flex items-center gap-2 mt-2 text-sm text-indigo-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={!!item.isWholesale}
+                          onChange={(e) => toggleWholesale(item.productId, e.target.checked)}
+                          className="w-4 h-4 accent-indigo-600"
+                        />
+                        Whole Sale Price (Rs. {item.wholesalePrice.toFixed(2)})
+                      </label>
                     )}
                   </div>
                 ))}

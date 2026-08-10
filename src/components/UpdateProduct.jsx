@@ -114,6 +114,22 @@ const UpdateProduct = ({ showUpdateModal, setShowUpdateModal, formData, setFormD
             />
           </div>
 
+          {/* NEW: Whole Sale Price */}
+          <div className="mb-4">
+            <label className="block text-gray-700 mb-2">Whole Sale Price (Rs.) (optional)</label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.wholesalePrice || ''}
+              onChange={(e) => setFormData(prev => ({ ...prev, wholesalePrice: e.target.value }))}
+              className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-500"
+              min="0"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Must be higher than the buying price. Leave blank if this product has no whole sale price.
+            </p>
+          </div>
+
           {/* ── Expire Dates ── */}
           <div className="mb-6">
             <ExpireDatePicker
