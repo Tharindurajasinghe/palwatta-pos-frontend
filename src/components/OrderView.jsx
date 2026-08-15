@@ -12,40 +12,39 @@ export const getOrderHTML = (order) => {
     <head>
       <meta charset="UTF-8">
       <title>Order ${order.orderId}</title>
-
-      <style>
+<style>
         @media print {
-          @page { size: 55mm auto; margin: 0; }
+          @page { size: 80mm auto; margin: 0; }
         }
 
         body {
           font-family: Arial, sans-serif;
-          width: 160px;
+          width: 280px;
           margin: 0 auto;
-          padding: 6px;
-          font-size: 10px;
+          padding: 10px;
+          font-size: 14px;
           color: #000;
         }
 
         .header { text-align: center; line-height: 1.2; }
-        .header h2 { font-size: 14px; margin: 2px 0; font-weight: bold; }
-        .header p { margin: 1px 0; font-size: 10px; }
+        .header h2 { font-size: 20px; margin: 3px 0; font-weight: bold; }
+        .header p { margin: 2px 0; font-size: 14px; }
 
         .order-tag {
           text-align: center;
           font-weight: bold;
-          font-size: 11px;
-          margin: 4px 0;
+          font-size: 15px;
+          margin: 6px 0;
           border: 1px solid #000;
-          padding: 2px 0;
+          padding: 3px 0;
         }
 
-        .bill-info { margin-top: 6px; font-size: 10px; line-height: 1.4; }
-        .separator { border-top: 1px dashed #000; margin: 6px 0; }
+        .bill-info { margin-top: 8px; font-size: 14px; line-height: 1.5; }
+        .separator { border-top: 1px dashed #000; margin: 8px 0; }
 
-        table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        th { text-align: left; border-bottom: 1px solid #000; padding-bottom: 3px; font-size: 10px; }
-        td { padding: 2px 0; vertical-align: top; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; border-bottom: 1px solid #000; padding-bottom: 4px; font-size: 14px; }
+        td { padding: 3px 0; vertical-align: top; }
 
         .qty, .price, .total { text-align: right; white-space: nowrap; }
         .name  { width: 45%; }
@@ -53,11 +52,11 @@ export const getOrderHTML = (order) => {
         .price { width: 20%; }
         .total { width: 20%; }
 
-        .totals { font-size: 10px; line-height: 1.6; }
+        .totals { font-size: 14px; line-height: 1.7; }
         .totals-row { display: flex; justify-content: space-between; }
 
-        .note { font-size: 10px; margin-top: 6px; line-height: 1.3; }
-        .footer { text-align: center; font-weight: bold; margin-top: 6px; }
+        .note { font-size: 14px; margin-top: 8px; line-height: 1.4; }
+        .footer { text-align: center; font-weight: bold; margin-top: 8px; font-size: 15px; }
       </style>
     </head>
 
